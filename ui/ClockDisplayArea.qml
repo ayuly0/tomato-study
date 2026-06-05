@@ -8,7 +8,9 @@ Item {
     property bool zenMode: false
     property bool controlsHiddenByInactivity: false
     property bool isHovered: false
+    property bool isCompactMode: false
     property color stateBreakColor: "#aaaaaa"
+    property real clockScale: 1.0
     
     // Backend Properties
     property string currentState: "work"
@@ -42,6 +44,9 @@ Item {
             if (root.zenMode || (root.isRunning && root.controlsHiddenByInactivity)) {
                 return 0.05;
             }
+            if (root.isCompactMode && !root.isHovered) {
+                return 0.0;
+            }
             return (root.isHovered || !root.isRunning) ? 0.6 : 0.05;
         }
         
@@ -69,7 +74,7 @@ Item {
         font.bold: true
         font.letterSpacing: 2
         color: root.currentState === "work" ? root.themeColor : root.stateBreakColor
-        opacity: statusText.opacity * 0.8
+        opacity: root.isCompactMode && !root.isHovered ? 0.0 : statusText.opacity * 0.8
     }
 
     // 2.5D Split-Card Flip Clock Display
@@ -80,6 +85,8 @@ Item {
         timeString: root.timeString
         isRunning: root.isRunning
         referenceSize: Math.min(parent.width, parent.height)
+        scale: root.isCompactMode && !root.isHovered && implicitWidth > 0 && implicitHeight > 0 ? Math.min(parent.width / implicitWidth, parent.height / implicitHeight) * 0.9 : root.clockScale
+        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
     }
 
     // Simple Digital Clock Display
@@ -90,5 +97,7 @@ Item {
         timeString: root.timeString
         themeColor: root.themeColor
         referenceSize: Math.min(parent.width, parent.height)
+        scale: root.isCompactMode && !root.isHovered && implicitWidth > 0 && implicitHeight > 0 ? Math.min(parent.width / implicitWidth, parent.height / implicitHeight) * 0.9 : root.clockScale
+        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
     }
 }

@@ -36,6 +36,9 @@ import QtQuick.Controls
         zenKB.currentKey = settings.keybindZenMode;
         streamKB.currentKey = settings.keybindStream;
         muteKB.currentKey = settings.keybindMute;
+        compactWidthInput.text = settings.compactWidthThreshold.toString();
+        compactHeightInput.text = settings.compactHeightThreshold.toString();
+        clockScaleSlider.value = settings.clockScale;
         
         root.opacity = 1.0;
     }
@@ -155,7 +158,10 @@ import QtQuick.Controls
                             alarmVolume: volumeSlider.value,
                             tickingEnabled: tickingToggle.checked,
                             streamEnabled: streamToggle.checked,
-                            streamVolume: streamVolumeSlider.value
+                            streamVolume: streamVolumeSlider.value,
+                            compactWidthThreshold: parseInt(compactWidthInput.text) || 400,
+                            compactHeightThreshold: parseInt(compactHeightInput.text) || 250,
+                            clockScale: clockScaleSlider.value
                         };
                         root.saveRequested(s);
                         root.opacity = 0.0;
@@ -164,6 +170,7 @@ import QtQuick.Controls
                 }
             }
         }
+
 
         // Scrollable Settings List
         ScrollView {
@@ -187,149 +194,14 @@ import QtQuick.Controls
                     width: parent.width
                     spacing: 12
                     
-                    // Work
-                    Item {
-                        width: parent.width
-                        height: 26
-                        
-                        Text {
-                            text: "Work Duration (min)"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Rectangle {
-                            width: 70
-                            height: 26
-                            color: "#181818"
-                            border.color: workInput.activeFocus ? root.themeColor : "#333333"
-                            radius: 3
-                            anchors.right: parent.right
-                            
-                            TextInput {
-                                id: workInput
-                                anchors.fill: parent
-                                anchors.margins: 3
-                                color: "#ffffff"
-                                font.pixelSize: 13
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                validator: IntValidator { bottom: 1; top: 999 }
-                            }
-                        }
-                    }
-                    
-                    // Short Break
-                    Item {
-                        width: parent.width
-                        height: 26
-                        
-                        Text {
-                            text: "Short Break (min)"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Rectangle {
-                            width: 70
-                            height: 26
-                            color: "#181818"
-                            border.color: breakInput.activeFocus ? root.themeColor : "#333333"
-                            radius: 3
-                            anchors.right: parent.right
-                            
-                            TextInput {
-                                id: breakInput
-                                anchors.fill: parent
-                                anchors.margins: 3
-                                color: "#ffffff"
-                                font.pixelSize: 13
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                validator: IntValidator { bottom: 1; top: 999 }
-                            }
-                        }
-                    }
-                    
-                    // Long Break
-                    Item {
-                        width: parent.width
-                        height: 26
-                        
-                        Text {
-                            text: "Long Break (min)"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Rectangle {
-                            width: 70
-                            height: 26
-                            color: "#181818"
-                            border.color: longBreakInput.activeFocus ? root.themeColor : "#333333"
-                            radius: 3
-                            anchors.right: parent.right
-                            
-                            TextInput {
-                                id: longBreakInput
-                                anchors.fill: parent
-                                anchors.margins: 3
-                                color: "#ffffff"
-                                font.pixelSize: 13
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                validator: IntValidator { bottom: 1; top: 999 }
-                            }
-                        }
-                    }
-
-                    // Long Break Interval
-                    Item {
-                        width: parent.width
-                        height: 26
-                        
-                        Text {
-                            text: "Long Break Interval (cycles)"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Rectangle {
-                            width: 70
-                            height: 26
-                            color: "#181818"
-                            border.color: lbiInput.activeFocus ? root.themeColor : "#333333"
-                            radius: 3
-                            anchors.right: parent.right
-                            
-                            TextInput {
-                                id: lbiInput
-                                anchors.fill: parent
-                                anchors.margins: 3
-                                color: "#ffffff"
-                                font.pixelSize: 13
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                validator: IntValidator { bottom: 1; top: 99 }
-                            }
-                        }
-                    }
+                    SettingNumberInput { id: workInput; labelText: "Work Duration (min)"; themeColor: root.themeColor }
+                    SettingNumberInput { id: breakInput; labelText: "Short Break (min)"; themeColor: root.themeColor }
+                    SettingNumberInput { id: longBreakInput; labelText: "Long Break (min)"; themeColor: root.themeColor }
+                    SettingNumberInput { id: lbiInput; labelText: "Long Break Interval (cycles)"; themeColor: root.themeColor; topValidator: 99 }
                 }
 
                 // Divider
-                Rectangle {
-                    width: parent.width
-                    height: 1
-                    color: "#1b1b1b"
-                }
+                Rectangle { width: parent.width; height: 1; color: "#1b1b1b" }
 
                 // 2. Toggles Group
                 Column {
@@ -356,8 +228,7 @@ import QtQuick.Controls
                             property string selectedTheme: "digital"
                             
                             Rectangle {
-                                width: 55
-                                height: 26
+                                width: 55; height: 26
                                 color: themeRow.selectedTheme === "flip" ? root.themeColor : "#181818"
                                 border.color: "#333333"
                                 radius: 3
@@ -375,8 +246,7 @@ import QtQuick.Controls
                             }
                             
                             Rectangle {
-                                width: 55
-                                height: 26
+                                width: 55; height: 26
                                 color: themeRow.selectedTheme === "digital" ? root.themeColor : "#181818"
                                 border.color: "#333333"
                                 radius: 3
@@ -395,590 +265,60 @@ import QtQuick.Controls
                         }
                     }
 
-                    // Always on top toggle
-                    Item {
-                        width: parent.width
-                        height: 20
-                        
-                        Text {
-                            text: "Always on Top"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Item {
-                            id: aotToggle
-                            width: 38
-                            height: 20
-                            anchors.right: parent.right
-                            property bool checked: false
-                            
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 10
-                                color: aotToggle.checked ? root.themeColor : "#333333"
-                                Behavior on color { ColorAnimation { duration: 150 } }
-                                
-                                Rectangle {
-                                    width: 14
-                                    height: 14
-                                    radius: 7
-                                    color: aotToggle.checked ? root.themeContrastColor : "#ffffff"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: aotToggle.checked ? 20 : 4
-                                    Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                                }
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: aotToggle.checked = !aotToggle.checked
-                            }
-                        }
-                    }
-
-                    // Sound enabled toggle
-                    Item {
-                        width: parent.width
-                        height: 20
-                        
-                        Text {
-                            text: "Audible Alarm"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Item {
-                            id: soundToggle
-                            width: 38
-                            height: 20
-                            anchors.right: parent.right
-                            property bool checked: false
-                            
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 10
-                                color: soundToggle.checked ? root.themeColor : "#333333"
-                                Behavior on color { ColorAnimation { duration: 150 } }
-                                
-                                Rectangle {
-                                    width: 14
-                                    height: 14
-                                    radius: 7
-                                    color: soundToggle.checked ? root.themeContrastColor : "#ffffff"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: soundToggle.checked ? 20 : 4
-                                    Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                                }
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: soundToggle.checked = !soundToggle.checked
-                            }
-                        }
-                    }
-
-                    // Visual flash toggle
-                    Item {
-                        width: parent.width
-                        height: 20
-                        
-                        Text {
-                            text: "Screen Flash on End"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Item {
-                            id: flashToggle
-                            width: 38
-                            height: 20
-                            anchors.right: parent.right
-                            property bool checked: false
-                            
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 10
-                                color: flashToggle.checked ? root.themeColor : "#333333"
-                                Behavior on color { ColorAnimation { duration: 150 } }
-                                
-                                Rectangle {
-                                    width: 14
-                                    height: 14
-                                    radius: 7
-                                    color: flashToggle.checked ? root.themeContrastColor : "#ffffff"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: flashToggle.checked ? 20 : 4
-                                    Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                                }
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: flashToggle.checked = !flashToggle.checked
-                            }
-                        }
-                    }
-
-                    // Auto-Start Breaks toggle
-                    Item {
-                        width: parent.width
-                        height: 20
-                        
-                        Text {
-                            text: "Auto-Start Breaks"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Item {
-                            id: autoBreaksToggle
-                            width: 38
-                            height: 20
-                            anchors.right: parent.right
-                            property bool checked: false
-                            
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 10
-                                color: autoBreaksToggle.checked ? root.themeColor : "#333333"
-                                Behavior on color { ColorAnimation { duration: 150 } }
-                                
-                                Rectangle {
-                                    width: 14
-                                    height: 14
-                                    radius: 7
-                                    color: autoBreaksToggle.checked ? root.themeContrastColor : "#ffffff"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: autoBreaksToggle.checked ? 20 : 4
-                                    Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                                }
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: autoBreaksToggle.checked = !autoBreaksToggle.checked
-                            }
-                        }
-                    }
-
-                    // Auto-Start Work toggle
-                    Item {
-                        width: parent.width
-                        height: 20
-                        
-                        Text {
-                            text: "Auto-Start Work"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Item {
-                            id: autoWorkToggle
-                            width: 38
-                            height: 20
-                            anchors.right: parent.right
-                            property bool checked: false
-                            
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 10
-                                color: autoWorkToggle.checked ? root.themeColor : "#333333"
-                                Behavior on color { ColorAnimation { duration: 150 } }
-                                
-                                Rectangle {
-                                    width: 14
-                                    height: 14
-                                    radius: 7
-                                    color: autoWorkToggle.checked ? root.themeContrastColor : "#ffffff"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: autoWorkToggle.checked ? 20 : 4
-                                    Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                                }
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: autoWorkToggle.checked = !autoWorkToggle.checked
-                            }
-                        }
-                    }
-
-                    // Soft Ticking Sound toggle
-                    Item {
-                        width: parent.width
-                        height: 20
-                        
-                        Text {
-                            text: "Soft Ticking Sound"
-                            color: "#888888"
-                            font.pixelSize: 13
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Item {
-                            id: tickingToggle
-                            width: 38
-                            height: 20
-                            anchors.right: parent.right
-                            property bool checked: false
-                            
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 10
-                                color: tickingToggle.checked ? root.themeColor : "#333333"
-                                Behavior on color { ColorAnimation { duration: 150 } }
-                                
-                                Rectangle {
-                                    width: 14
-                                    height: 14
-                                    radius: 7
-                                    color: tickingToggle.checked ? root.themeContrastColor : "#ffffff"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: tickingToggle.checked ? 20 : 4
-                                    Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                                }
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: tickingToggle.checked = !tickingToggle.checked
-                            }
-                        }
-                    }
+                    SettingToggle { id: aotToggle; labelText: "Always on Top"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
+                    SettingToggle { id: soundToggle; labelText: "Audible Alarm"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
+                    SettingToggle { id: flashToggle; labelText: "Screen Flash on End"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
+                    SettingToggle { id: autoBreaksToggle; labelText: "Auto-Start Breaks"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
+                    SettingToggle { id: autoWorkToggle; labelText: "Auto-Start Work"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
+                    SettingToggle { id: tickingToggle; labelText: "Soft Ticking Sound"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
                 }
 
                 // Divider
-                Rectangle {
-                    width: parent.width
-                    height: 1
-                    color: "#1b1b1b"
-                }
+                Rectangle { width: parent.width; height: 1; color: "#1b1b1b" }
 
                 // 3. Audio Volume Slider
-                Item {
-                    width: parent.width
-                    height: 26
-                    
-                    Text {
-                        text: "Alarm Volume (" + (volumeSlider.value * 100).toFixed(0) + "%)"
-                        color: "#888888"
-                        font.pixelSize: 13
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    
-                    Slider {
-                        id: volumeSlider
-                        from: 0.0
-                        to: 1.0
-                        stepSize: 0.05
-                        width: 120
-                        anchors.right: parent.right
-                        
-                        background: Rectangle {
-                            x: volumeSlider.leftPadding
-                            y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 120
-                            implicitHeight: 4
-                            width: volumeSlider.availableWidth
-                            height: implicitHeight
-                            radius: 2
-                            color: "#333333"
-                            
-                            Rectangle {
-                                width: volumeSlider.visualPosition * parent.width
-                                height: parent.height
-                                color: root.themeColor
-                                radius: 2
-                            }
-                        }
-                        
-                        handle: Rectangle {
-                            x: volumeSlider.leftPadding + volumeSlider.visualPosition * (volumeSlider.availableWidth - width)
-                            y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 14
-                            implicitHeight: 14
-                            radius: 7
-                            color: "#ffffff"
-                            border.color: root.themeColor
-                            border.width: 1
-                        }
-                    }
+                SettingSlider { 
+                    id: volumeSlider; 
+                    labelText: "Alarm Volume (" + (value * 100).toFixed(0) + "%)"; 
+                    themeColor: root.themeColor; 
+                    from: 0.0; to: 1.0; stepSize: 0.05 
                 }
 
-                // Stream late.sh toggle
-                Item {
-                    width: parent.width
-                    height: 20
-                    
-                    Text {
-                        text: "Stream late.sh"
-                        color: "#888888"
-                        font.pixelSize: 13
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    
-                    Item {
-                        id: streamToggle
-                        width: 38
-                        height: 20
-                        anchors.right: parent.right
-                        property bool checked: false
-                        
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 10
-                            color: streamToggle.checked ? root.themeColor : "#333333"
-                             Behavior on color { ColorAnimation { duration: 150 } }
-                            
-                            Rectangle {
-                                width: 14
-                                height: 14
-                                radius: 7
-                                color: streamToggle.checked ? root.themeContrastColor : "#ffffff"
-                                anchors.verticalCenter: parent.verticalCenter
-                                x: streamToggle.checked ? 20 : 4
-                                Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                            }
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: streamToggle.checked = !streamToggle.checked
-                        }
-                    }
-                }
+                SettingToggle { id: streamToggle; labelText: "Stream late.sh"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
 
-                // Stream Volume Slider
-                Item {
-                    width: parent.width
-                    height: 26
-                    
-                    Text {
-                        text: "Stream Volume (" + (streamVolumeSlider.value * 100).toFixed(0) + "%)"
-                        color: "#888888"
-                        font.pixelSize: 13
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    
-                    Slider {
-                        id: streamVolumeSlider
-                        from: 0.0
-                        to: 1.0
-                        stepSize: 0.05
-                        width: 120
-                        anchors.right: parent.right
-                        
-                        background: Rectangle {
-                            x: streamVolumeSlider.leftPadding
-                            y: streamVolumeSlider.topPadding + streamVolumeSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 120
-                            implicitHeight: 4
-                            width: streamVolumeSlider.availableWidth
-                            height: implicitHeight
-                            radius: 2
-                            color: "#333333"
-                            
-                            Rectangle {
-                                width: streamVolumeSlider.visualPosition * parent.width
-                                height: parent.height
-                                color: root.themeColor
-                                radius: 2
-                            }
-                        }
-                        
-                        handle: Rectangle {
-                            x: streamVolumeSlider.leftPadding + streamVolumeSlider.visualPosition * (streamVolumeSlider.availableWidth - width)
-                            y: streamVolumeSlider.topPadding + streamVolumeSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 14
-                            implicitHeight: 14
-                            radius: 7
-                            color: "#ffffff"
-                            border.color: root.themeColor
-                            border.width: 1
-                        }
-                    }
+                SettingSlider { 
+                    id: streamVolumeSlider; 
+                    labelText: "Stream Volume (" + (value * 100).toFixed(0) + "%)"; 
+                    themeColor: root.themeColor; 
+                    from: 0.0; to: 1.0; stepSize: 0.05 
                 }
 
                 // 4. Shader Sliders
-                Item {
-                    width: parent.width
-                    height: 26
-                    
-                    Text {
-                        text: "Shader Trail Delay (" + dampingSlider.value.toFixed(2) + ")"
-                        color: "#888888"
-                        font.pixelSize: 13
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    
-                    Slider {
-                        id: dampingSlider
-                        from: 0.01
-                        to: 0.20
-                        stepSize: 0.01
-                        width: 120
-                        anchors.right: parent.right
-                        
-                        background: Rectangle {
-                            x: dampingSlider.leftPadding
-                            y: dampingSlider.topPadding + dampingSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 120
-                            implicitHeight: 4
-                            width: dampingSlider.availableWidth
-                            height: implicitHeight
-                            radius: 2
-                            color: "#333333"
-                            
-                            Rectangle {
-                                width: dampingSlider.visualPosition * parent.width
-                                height: parent.height
-                                color: root.themeColor
-                                radius: 2
-                            }
-                        }
-                        
-                        handle: Rectangle {
-                            x: dampingSlider.leftPadding + dampingSlider.visualPosition * (dampingSlider.availableWidth - width)
-                            y: dampingSlider.topPadding + dampingSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 14
-                            implicitHeight: 14
-                            radius: 7
-                            color: "#ffffff"
-                            border.color: root.themeColor
-                            border.width: 1
-                        }
-                    }
+                SettingSlider { 
+                    id: dampingSlider; 
+                    labelText: "Shader Trail Delay (" + value.toFixed(2) + ")"; 
+                    themeColor: root.themeColor; 
+                    from: 0.01; to: 0.20; stepSize: 0.01 
                 }
 
-                // Shader Drift Speed (Speed Slider)
-                Item {
-                    width: parent.width
-                    height: 26
-                    
-                    Text {
-                        text: "Star Drift Speed (" + (speedSlider.value * 1000).toFixed(0) + ")"
-                        color: "#888888"
-                        font.pixelSize: 13
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    
-                    Slider {
-                        id: speedSlider
-                        from: 0.00
-                        to: 0.05
-                        stepSize: 0.005
-                        width: 120
-                        anchors.right: parent.right
-                        
-                        background: Rectangle {
-                            x: speedSlider.leftPadding
-                            y: speedSlider.topPadding + speedSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 120
-                            implicitHeight: 4
-                            width: speedSlider.availableWidth
-                            height: implicitHeight
-                            radius: 2
-                            color: "#333333"
-                            
-                            Rectangle {
-                                width: speedSlider.visualPosition * parent.width
-                                height: parent.height
-                                color: root.themeColor
-                                radius: 2
-                            }
-                        }
-                        
-                        handle: Rectangle {
-                            x: speedSlider.leftPadding + speedSlider.visualPosition * (speedSlider.availableWidth - width)
-                            y: speedSlider.topPadding + speedSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 14
-                            implicitHeight: 14
-                            radius: 7
-                            color: "#ffffff"
-                            border.color: root.themeColor
-                            border.width: 1
-                        }
-                    }
+                SettingSlider { 
+                    id: speedSlider; 
+                    labelText: "Star Drift Speed (" + (value * 1000).toFixed(0) + ")"; 
+                    themeColor: root.themeColor; 
+                    from: 0.00; to: 0.05; stepSize: 0.005 
                 }
 
-                // Shooting Star Frequency (Meteor Slider)
-                Item {
-                    width: parent.width
-                    height: 26
-                    
-                    Text {
-                        text: "Shooting Stars (" + (meteorSlider.value * 100).toFixed(0) + "%)"
-                        color: "#888888"
-                        font.pixelSize: 13
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    
-                    Slider {
-                        id: meteorSlider
-                        from: 0.0
-                        to: 1.0
-                        stepSize: 0.1
-                        width: 120
-                        anchors.right: parent.right
-                        
-                        background: Rectangle {
-                            x: meteorSlider.leftPadding
-                            y: meteorSlider.topPadding + meteorSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 120
-                            implicitHeight: 4
-                            width: meteorSlider.availableWidth
-                            height: implicitHeight
-                            radius: 2
-                            color: "#333333"
-                            
-                            Rectangle {
-                                width: meteorSlider.visualPosition * parent.width
-                                height: parent.height
-                                color: root.themeColor
-                                radius: 2
-                            }
-                        }
-                        
-                        handle: Rectangle {
-                            x: meteorSlider.leftPadding + meteorSlider.visualPosition * (meteorSlider.availableWidth - width)
-                            y: meteorSlider.topPadding + meteorSlider.availableHeight / 2 - height / 2
-                            implicitWidth: 14
-                            implicitHeight: 14
-                            radius: 7
-                            color: "#ffffff"
-                            border.color: root.themeColor
-                            border.width: 1
-                        }
-                    }
+                SettingSlider { 
+                    id: meteorSlider; 
+                    labelText: "Shooting Stars (" + (value * 100).toFixed(0) + "%)"; 
+                    themeColor: root.themeColor; 
+                    from: 0.0; to: 1.0; stepSize: 0.1 
                 }
 
                 // Divider
-                Rectangle {
-                    width: parent.width
-                    height: 1
-                    color: "#1b1b1b"
-                }
+                Rectangle { width: parent.width; height: 1; color: "#1b1b1b" }
 
-                // 3. Keybindings Group
+                // 5. Keybindings Group
                 Column {
                     width: parent.width
                     spacing: 8
@@ -1029,13 +369,9 @@ import QtQuick.Controls
                 }
 
                 // Divider
-                Rectangle {
-                    width: parent.width
-                    height: 1
-                    color: "#1b1b1b"
-                }
+                Rectangle { width: parent.width; height: 1; color: "#1b1b1b" }
 
-                // 5. Theme Colors row
+                // 6. Theme Colors row
                 Column {
                     width: parent.width
                     spacing: 8
@@ -1058,9 +394,7 @@ import QtQuick.Controls
                         Repeater {
                             model: colorRow.colorPalette
                             delegate: Rectangle {
-                                width: 24
-                                height: 24
-                                radius: 12
+                                width: 24; height: 24; radius: 12
                                 color: modelData
                                 border.color: colorRow.selectedColor === modelData ? "#ffffff" : "#444444"
                                 border.width: colorRow.selectedColor === modelData ? 2 : 1
@@ -1072,6 +406,25 @@ import QtQuick.Controls
                             }
                         }
                     }
+                }
+
+                // Divider
+                Rectangle { width: parent.width; height: 1; color: "#1b1b1b" }
+
+                // 7. Window Layout Group
+                Column {
+                    width: parent.width
+                    spacing: 12
+                    
+                    SettingSlider { 
+                        id: clockScaleSlider; 
+                        labelText: "Clock Scale (" + value.toFixed(2) + "x)"; 
+                        themeColor: root.themeColor; 
+                        from: 0.5; to: 2.5; stepSize: 0.05 
+                    }
+                    
+                    SettingNumberInput { id: compactWidthInput; labelText: "Compact Width Threshold (px)"; themeColor: root.themeColor; topValidator: 4000 }
+                    SettingNumberInput { id: compactHeightInput; labelText: "Compact Height Threshold (px)"; themeColor: root.themeColor; topValidator: 4000 }
                 }
             }
         }

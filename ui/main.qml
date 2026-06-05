@@ -7,6 +7,14 @@ Item {
     height: 400
     focus: true
 
+    HoverHandler {
+        id: globalHoverHandler
+        onPointChanged: {
+            controlsInteractionTimer.restart();
+            controlsHiddenByInactivity = false;
+        }
+    }
+
     // State Colors mapping for status label and text theme matching
     readonly property color stateBreakColor: "#aaaaaa"
     readonly property color themeContrastColor: (timerBackend.themeColor === "#ffffff" || timerBackend.themeColor === "#f1c40f") ? "#000000" : "#ffffff"
@@ -23,6 +31,7 @@ Item {
     // Zen Mode and Inactivity states
     property bool zenMode: false
     property bool controlsHiddenByInactivity: false
+    property bool isCompactMode: width < timerBackend.compactWidthThreshold || height < timerBackend.compactHeightThreshold
     
     onZenModeChanged: {
         zenNotification.trigger();
@@ -89,7 +98,8 @@ Item {
         id: clockDisplay
         zenMode: root.zenMode
         controlsHiddenByInactivity: root.controlsHiddenByInactivity
-        isHovered: hoverArea.containsMouse
+        isCompactMode: root.isCompactMode
+        isHovered: globalHoverHandler.hovered
         stateBreakColor: root.stateBreakColor
         
         currentState: timerBackend.currentState
@@ -99,6 +109,7 @@ Item {
         longBreakInterval: timerBackend.longBreakInterval
         clockTheme: timerBackend.clockTheme
         timeString: timerBackend.timeString
+        clockScale: timerBackend.clockScale
     }
 
     ControlBar {
@@ -107,12 +118,15 @@ Item {
         anchors.bottomMargin: Math.max(25, parent.height * 0.1)
         anchors.horizontalCenter: parent.horizontalCenter
         
+        
         zenMode: root.zenMode
         controlsHiddenByInactivity: root.controlsHiddenByInactivity
-        isHovered: hoverArea.containsMouse
+        isCompactMode: root.isCompactMode
+        isHovered: globalHoverHandler.hovered
         
         isRunning: timerBackend.isRunning
         streamEnabled: timerBackend.streamEnabled
+        streamMuted: timerBackend.streamMuted
         streamStatus: timerBackend.streamStatus
         songTitle: timerBackend.songTitle
         themeColor: timerBackend.themeColor
@@ -134,7 +148,8 @@ Item {
                 timerBackend.themeColor, timerBackend.shaderDamping, timerBackend.shaderSpeed,
                 timerBackend.meteorFrequency, timerBackend.clockTheme, timerBackend.autoStartBreaks,
                 timerBackend.autoStartWork, timerBackend.longBreakInterval, timerBackend.alarmVolume,
-                timerBackend.tickingEnabled, timerBackend.streamEnabled, timerBackend.streamVolume
+                timerBackend.tickingEnabled, timerBackend.streamEnabled, timerBackend.streamVolume,
+                timerBackend.compactWidthThreshold, timerBackend.compactHeightThreshold, timerBackend.clockScale
             );
         }
         onRequestAlarmVolume: (value) => timerBackend.setAlarmVolume(value)
@@ -144,15 +159,10 @@ Item {
     MouseArea {
         id: hoverArea
         anchors.fill: parent
-        hoverEnabled: true
+        hoverEnabled: false
         acceptedButtons: Qt.NoButton
         
         cursorShape: (zenMode || controlsHiddenByInactivity) ? Qt.BlankCursor : Qt.ArrowCursor
-        
-        onPositionChanged: (mouse) => {
-            controlsInteractionTimer.restart();
-            controlsHiddenByInactivity = false;
-        }
     }
 
     SettingsPanel {
@@ -167,7 +177,8 @@ Item {
                 s.themeColor, s.shaderDamping, s.shaderSpeed,
                 s.meteorFrequency, s.clockTheme, s.autoStartBreaks,
                 s.autoStartWork, s.longBreakInterval, s.alarmVolume,
-                s.tickingEnabled, s.streamEnabled, s.streamVolume
+                s.tickingEnabled, s.streamEnabled, s.streamVolume,
+                s.compactWidthThreshold, s.compactHeightThreshold, s.clockScale
             );
         }
         
@@ -241,7 +252,10 @@ Item {
             keybindSettings: timerBackend.keybindSettings,
             keybindZenMode: timerBackend.keybindZenMode,
             keybindStream: timerBackend.keybindStream,
-            keybindMute: timerBackend.keybindMute
+            keybindMute: timerBackend.keybindMute,
+            compactWidthThreshold: timerBackend.compactWidthThreshold,
+            compactHeightThreshold: timerBackend.compactHeightThreshold,
+            clockScale: timerBackend.clockScale
         };
         settingsPanel.open(settings);
     }

@@ -20,6 +20,9 @@ DEFAULT_METEOR_FREQUENCY = 0.4
 DEFAULT_LONG_BREAK_INTERVAL = 4
 DEFAULT_ALARM_VOLUME = 1.0
 DEFAULT_STREAM_VOLUME = 0.5
+DEFAULT_COMPACT_WIDTH_THRESHOLD = 400
+DEFAULT_COMPACT_HEIGHT_THRESHOLD = 250
+DEFAULT_CLOCK_SCALE = 1.0
 TIMER_TICK_INTERVAL_MS = 100
 SECONDS_IN_MINUTE = 60
 
@@ -48,12 +51,16 @@ class TimerBackend(QObject):
     longBreakIntervalChanged = Signal(int)
     alarmVolumeChanged = Signal(float)
     tickingEnabledChanged = Signal(bool)
+    compactWidthThresholdChanged = Signal(int)
+    compactHeightThresholdChanged = Signal(int)
+    clockScaleChanged = Signal(float)
     
     # late.sh streaming signals
     streamEnabledChanged = Signal(bool)
     streamVolumeChanged = Signal(float)
     streamStatusChanged = Signal(str)
     songTitleChanged = Signal(str)
+    streamMutedChanged = Signal(bool)
     
     keybindPlayPauseChanged = Signal(str)
     keybindResetChanged = Signal(str)
@@ -144,6 +151,9 @@ class TimerBackend(QObject):
                 self._long_break_interval = int(data.get("long_break_interval", DEFAULT_LONG_BREAK_INTERVAL))
                 self._alarm_volume = float(data.get("alarm_volume", DEFAULT_ALARM_VOLUME))
                 self._ticking_enabled = bool(data.get("ticking_enabled", False))
+                self._compact_width_threshold = int(data.get("compact_width_threshold", DEFAULT_COMPACT_WIDTH_THRESHOLD))
+                self._compact_height_threshold = int(data.get("compact_height_threshold", DEFAULT_COMPACT_HEIGHT_THRESHOLD))
+                self._clock_scale = float(data.get("clock_scale", DEFAULT_CLOCK_SCALE))
                 
                 # Audio streaming configs
                 self._stream_enabled = bool(data.get("stream_enabled", False))
@@ -177,6 +187,9 @@ class TimerBackend(QObject):
         self._long_break_interval = DEFAULT_LONG_BREAK_INTERVAL
         self._alarm_volume = DEFAULT_ALARM_VOLUME
         self._ticking_enabled = False
+        self._compact_width_threshold = DEFAULT_COMPACT_WIDTH_THRESHOLD
+        self._compact_height_threshold = DEFAULT_COMPACT_HEIGHT_THRESHOLD
+        self._clock_scale = DEFAULT_CLOCK_SCALE
         self._stream_enabled = False
         self._stream_volume = DEFAULT_STREAM_VOLUME
         
@@ -209,6 +222,9 @@ class TimerBackend(QObject):
             "long_break_interval": self._long_break_interval,
             "alarm_volume": self._alarm_volume,
             "ticking_enabled": self._ticking_enabled,
+            "compact_width_threshold": self._compact_width_threshold,
+            "compact_height_threshold": self._compact_height_threshold,
+            "clock_scale": self._clock_scale,
             "stream_enabled": self._stream_enabled,
             "stream_volume": self._stream_volume,
             "keybind_play_pause": self._keybind_play_pause,
@@ -341,8 +357,8 @@ class TimerBackend(QObject):
         self._paused_seconds_remaining = float(self._total_seconds_to_run)
         self.update_time_string()
 
-    @Slot(int, int, int, bool, bool, bool, str, float, float, float, str, bool, bool, int, float, bool, bool, float)
-    def updateSettings(self, work, short_break, long_break, aot, sound, flash, color, damping, shader_speed, meteor_freq, clock_theme, auto_breaks, auto_work, lbi, volume, ticking, stream_enabled, stream_volume):
+    @Slot(int, int, int, bool, bool, bool, str, float, float, float, str, bool, bool, int, float, bool, bool, float, int, int, float)
+    def updateSettings(self, work, short_break, long_break, aot, sound, flash, color, damping, shader_speed, meteor_freq, clock_theme, auto_breaks, auto_work, lbi, volume, ticking, stream_enabled, stream_volume, compact_width, compact_height, clock_scale):
         self._work_minutes = work
         self._short_break_minutes = short_break
         self._long_break_minutes = long_break
@@ -357,6 +373,9 @@ class TimerBackend(QObject):
         self._auto_start_work = auto_work
         self._long_break_interval = lbi
         self._ticking_enabled = ticking
+        self._compact_width_threshold = compact_width
+        self._compact_height_threshold = compact_height
+        self._clock_scale = clock_scale
         
         if self._alarm_volume != volume:
             self._alarm_volume = volume
@@ -380,6 +399,7 @@ class TimerBackend(QObject):
             self._stream_enabled = stream_enabled
             self._streamer.set_enabled(stream_enabled)
             self.streamEnabledChanged.emit(stream_enabled)
+            self.streamMutedChanged.emit(self.streamMuted)
             
         self.workMinutesChanged.emit(work)
         self.shortBreakMinutesChanged.emit(short_break)
@@ -395,6 +415,9 @@ class TimerBackend(QObject):
         self.autoStartWorkChanged.emit(auto_work)
         self.longBreakIntervalChanged.emit(lbi)
         self.tickingEnabledChanged.emit(ticking)
+        self.compactWidthThresholdChanged.emit(compact_width)
+        self.compactHeightThresholdChanged.emit(compact_height)
+        self.clockScaleChanged.emit(clock_scale)
         
         self.save_settings_to_file()
         
@@ -475,8 +498,20 @@ class TimerBackend(QObject):
     @Property(bool, notify=tickingEnabledChanged)
     def tickingEnabled(self): return self._ticking_enabled
 
+    @Property(int, notify=compactWidthThresholdChanged)
+    def compactWidthThreshold(self): return self._compact_width_threshold
+
+    @Property(int, notify=compactHeightThresholdChanged)
+    def compactHeightThreshold(self): return self._compact_height_threshold
+
+    @Property(float, notify=clockScaleChanged)
+    def clockScale(self): return self._clock_scale
+
     @Property(bool, notify=streamEnabledChanged)
     def streamEnabled(self): return self._stream_enabled
+
+    @Property(bool, notify=streamMutedChanged)
+    def streamMuted(self): return not self._stream_enabled or self._streamer._is_muted
 
     @Property(float, notify=streamVolumeChanged)
     def streamVolume(self): return self._stream_volume
@@ -543,6 +578,8 @@ class TimerBackend(QObject):
             self._stream_enabled = True
             self.streamEnabledChanged.emit(True)
             self.save_settings_to_file()
+            
+        self.streamMutedChanged.emit(self.streamMuted)
 
     @Slot(float)
     def setStreamVolume(self, volume):
