@@ -19,6 +19,9 @@ Currently, this application has only been tested on **Linux**.
 ## Features
 
 - **Split-Card Flip Clock & Digital Clock**: Sleek and satisfying card flip animations and a clean digital layout.
+- **Timer Presets**: Switch between built-in presets like traditional Pomodoro and Flowtime, or create your own custom intervals.
+- **Flowtime Mode**: A flexible timer mode that counts up, allowing you to focus as long as you want while automatically calculating appropriate break times.
+- **Compact Mode**: Scale down the UI and adjust dimensions for a minimal footprint on your screen.
 - **Study Stream Integration**: Stream background study music directly from the `late.sh` vibe radio with a built-in volume slider and mute toggle.
 - **Zen Mode**: Double-click the background (or press `Z`) to hide all UI elements and cursor for distraction-free focus.
 - **Interactive Background**: High-performance fragment shaders rendering drifting stars, shooting meteors, and trail effects that react to your mouse.
