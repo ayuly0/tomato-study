@@ -1,0 +1,17 @@
+{
+  "work_minutes": 25,
+  "short_break_minutes": 5,
+  "long_break_minutes": 10,
+  "always_on_top": false,
+  "sound_enabled": true,
+  "flash_enabled": true,
+  "theme_color": "#ffffff",
+  "shader_damping": 0.05,
+  "shader_speed": 0.015,
+  "meteor_frequency": 0.4,
+  "auto_start_breaks": false,
+  "auto_start_work": false,
+  "long_break_interval": 4,
+  "alarm_volume": 1.0,
+  "ticking_enabled": false
+}
