@@ -1,0 +1,40 @@
+{
+  "presets": [
+    {
+      "name": "Pomodoro",
+      "mode": "countdown",
+      "work_minutes": 25,
+      "short_break_minutes": 5,
+      "long_break_minutes": 15,
+      "long_break_interval": 4
+    },
+    {
+      "name": "52/17 Rule",
+      "mode": "countdown",
+      "work_minutes": 52,
+      "short_break_minutes": 17,
+      "long_break_minutes": 17,
+      "long_break_interval": 1
+    },
+    {
+      "name": "90/20 Rule",
+      "mode": "countdown",
+      "work_minutes": 90,
+      "short_break_minutes": 20,
+      "long_break_minutes": 30,
+      "long_break_interval": 2
+    },
+    {
+      "name": "Animedoro",
+      "mode": "countdown",
+      "work_minutes": 50,
+      "short_break_minutes": 20,
+      "long_break_minutes": 20,
+      "long_break_interval": 1
+    },
+    {
+      "name": "Flowtime",
+      "mode": "flowtime"
+    }
+  ]
+}

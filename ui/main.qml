@@ -133,6 +133,8 @@ Item {
         soundEnabled: timerBackend.soundEnabled
         alarmVolume: timerBackend.alarmVolume
         streamVolume: timerBackend.streamVolume
+        timerMode: timerBackend.timerMode
+        currentState: timerBackend.currentState
         
         onPlayPauseClicked: {
             if (timerBackend.isRunning) timerBackend.pause();
@@ -149,11 +151,13 @@ Item {
                 timerBackend.meteorFrequency, timerBackend.clockTheme, timerBackend.autoStartBreaks,
                 timerBackend.autoStartWork, timerBackend.longBreakInterval, timerBackend.alarmVolume,
                 timerBackend.tickingEnabled, timerBackend.streamEnabled, timerBackend.streamVolume,
-                timerBackend.compactWidthThreshold, timerBackend.compactHeightThreshold, timerBackend.clockScale
+                timerBackend.compactWidthThreshold, timerBackend.compactHeightThreshold, timerBackend.clockScale,
+                timerBackend.activePreset, timerBackend.timerMode
             );
         }
         onRequestAlarmVolume: (value) => timerBackend.setAlarmVolume(value)
         onRequestStreamVolume: (value) => timerBackend.setStreamVolume(value)
+        onTakeBreakClicked: timerBackend.stopFlowtimeAndStartBreak()
     }
 
     MouseArea {
@@ -178,7 +182,8 @@ Item {
                 s.meteorFrequency, s.clockTheme, s.autoStartBreaks,
                 s.autoStartWork, s.longBreakInterval, s.alarmVolume,
                 s.tickingEnabled, s.streamEnabled, s.streamVolume,
-                s.compactWidthThreshold, s.compactHeightThreshold, s.clockScale
+                s.compactWidthThreshold, s.compactHeightThreshold, s.clockScale,
+                s.activePreset, s.timerMode
             );
         }
         
@@ -246,6 +251,8 @@ Item {
             tickingEnabled: timerBackend.tickingEnabled,
             streamEnabled: timerBackend.streamEnabled,
             streamVolume: timerBackend.streamVolume,
+            activePreset: timerBackend.activePreset,
+            timerMode: timerBackend.timerMode,
             
             keybindPlayPause: timerBackend.keybindPlayPause,
             keybindReset: timerBackend.keybindReset,
@@ -340,7 +347,9 @@ Item {
                 timerBackend.themeColor, timerBackend.shaderDamping, timerBackend.shaderSpeed,
                 timerBackend.meteorFrequency, timerBackend.clockTheme, timerBackend.autoStartBreaks,
                 timerBackend.autoStartWork, timerBackend.longBreakInterval, timerBackend.alarmVolume,
-                timerBackend.tickingEnabled, timerBackend.streamEnabled, timerBackend.streamVolume
+                timerBackend.tickingEnabled, timerBackend.streamEnabled, timerBackend.streamVolume,
+                timerBackend.compactWidthThreshold, timerBackend.compactHeightThreshold, timerBackend.clockScale,
+                timerBackend.activePreset, timerBackend.timerMode
             );
         }
         enabled: settingsPanel.opacity === 0.0

@@ -3,45 +3,55 @@ import QtQuick.Controls
 
     Rectangle {
         id: root
-    property color themeColor: "#ffffff"
-    property color themeContrastColor: "#000000"
-    
-    signal saveRequested(var settings)
-    signal updateKeybindsRequested(string p1, string p2, string p3, string p4, string p5, string p6)
-    signal closed()
+        property color themeColor: "#ffffff"
+        property color themeContrastColor: "#000000"
+        property string activePreset: "Pomodoro"
+        property string timerMode: "countdown"
+        
+        signal saveRequested(var settings)
+        signal updateKeybindsRequested(string p1, string p2, string p3, string p4, string p5, string p6)
+        signal closed()
 
-    function open(settings) {
-        workInput.text = settings.workMinutes.toString();
-        breakInput.text = settings.shortBreakMinutes.toString();
-        longBreakInput.text = settings.longBreakMinutes.toString();
-        aotToggle.checked = settings.alwaysOnTop;
-        soundToggle.checked = settings.soundEnabled;
-        flashToggle.checked = settings.flashEnabled;
-        colorRow.selectedColor = settings.themeColor;
-        themeRow.selectedTheme = settings.clockTheme;
-        dampingSlider.value = settings.shaderDamping;
-        speedSlider.value = settings.shaderSpeed;
-        meteorSlider.value = settings.meteorFrequency;
-        autoBreaksToggle.checked = settings.autoStartBreaks;
-        autoWorkToggle.checked = settings.autoStartWork;
-        lbiInput.text = settings.longBreakInterval.toString();
-        volumeSlider.value = settings.alarmVolume;
-        tickingToggle.checked = settings.tickingEnabled;
-        streamToggle.checked = settings.streamEnabled;
-        streamVolumeSlider.value = settings.streamVolume;
-        
-        playPauseKB.currentKey = settings.keybindPlayPause;
-        resetKB.currentKey = settings.keybindReset;
-        settingsKB.currentKey = settings.keybindSettings;
-        zenKB.currentKey = settings.keybindZenMode;
-        streamKB.currentKey = settings.keybindStream;
-        muteKB.currentKey = settings.keybindMute;
-        compactWidthInput.text = settings.compactWidthThreshold.toString();
-        compactHeightInput.text = settings.compactHeightThreshold.toString();
-        clockScaleSlider.value = settings.clockScale;
-        
-        root.opacity = 1.0;
-    }
+        function open(settings) {
+            root.activePreset = settings.activePreset || "Pomodoro";
+            root.timerMode = settings.timerMode || "countdown";
+            
+            var presetIdx = presetComboBox.indexOfValue(root.activePreset);
+            if (presetIdx >= 0) {
+                presetComboBox.currentIndex = presetIdx;
+            }
+
+            workInput.text = settings.workMinutes.toString();
+            breakInput.text = settings.shortBreakMinutes.toString();
+            longBreakInput.text = settings.longBreakMinutes.toString();
+            aotToggle.checked = settings.alwaysOnTop;
+            soundToggle.checked = settings.soundEnabled;
+            flashToggle.checked = settings.flashEnabled;
+            colorRow.selectedColor = settings.themeColor;
+            themeRow.selectedTheme = settings.clockTheme;
+            dampingSlider.value = settings.shaderDamping;
+            speedSlider.value = settings.shaderSpeed;
+            meteorSlider.value = settings.meteorFrequency;
+            autoBreaksToggle.checked = settings.autoStartBreaks;
+            autoWorkToggle.checked = settings.autoStartWork;
+            lbiInput.text = settings.longBreakInterval.toString();
+            volumeSlider.value = settings.alarmVolume;
+            tickingToggle.checked = settings.tickingEnabled;
+            streamToggle.checked = settings.streamEnabled;
+            streamVolumeSlider.value = settings.streamVolume;
+            
+            playPauseKB.currentKey = settings.keybindPlayPause;
+            resetKB.currentKey = settings.keybindReset;
+            settingsKB.currentKey = settings.keybindSettings;
+            zenKB.currentKey = settings.keybindZenMode;
+            streamKB.currentKey = settings.keybindStream;
+            muteKB.currentKey = settings.keybindMute;
+            compactWidthInput.text = settings.compactWidthThreshold.toString();
+            compactHeightInput.text = settings.compactHeightThreshold.toString();
+            clockScaleSlider.value = settings.clockScale;
+            
+            root.opacity = 1.0;
+        }
         anchors.fill: parent
         color: "#0a0a0a"
         opacity: 0.0
@@ -161,7 +171,9 @@ import QtQuick.Controls
                             streamVolume: streamVolumeSlider.value,
                             compactWidthThreshold: parseInt(compactWidthInput.text) || 400,
                             compactHeightThreshold: parseInt(compactHeightInput.text) || 250,
-                            clockScale: clockScaleSlider.value
+                            clockScale: clockScaleSlider.value,
+                            activePreset: root.activePreset,
+                            timerMode: root.timerMode
                         };
                         root.saveRequested(s);
                         root.opacity = 0.0;
@@ -189,15 +201,117 @@ import QtQuick.Controls
                 width: settingsScroll.width - 12
                 spacing: 16
 
+                Text {
+                    id: midSessionWarning
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    horizontalAlignment: Text.AlignHCenter
+                    color: "#ff4d4d"
+                    font.pixelSize: 11
+                    font.bold: true
+                    text: "⚠️ SAVING WILL RESET THE ACTIVE FOCUS SESSION"
+                    visible: timerBackend.isRunning || timerBackend.currentState !== "work" || (timerBackend.timerMode === "flowtime" ? timerBackend.progress > 0.0 : (timerBackend.progress > 0.0 && timerBackend.progress < 1.0))
+                }
+
+                // Preset Dropdown Row
+                Item {
+                    width: parent.width
+                    height: 26
+                    
+                    Text {
+                        text: "Focus Preset"
+                        color: "#888888"
+                        font.pixelSize: 13
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    
+                    ComboBox {
+                        id: presetComboBox
+                        anchors.right: parent.right
+                        width: 140
+                        height: 26
+                        model: timerBackend.presetsList
+                        
+                        background: Rectangle {
+                            color: "#181818"
+                            border.color: presetComboBox.activeFocus ? root.themeColor : "#333333"
+                            border.width: 1
+                            radius: 3
+                        }
+                        
+                        contentItem: Text {
+                            leftPadding: 8
+                            rightPadding: presetComboBox.indicator.width + presetComboBox.spacing
+                            text: presetComboBox.displayText
+                            font.pixelSize: 12
+                            color: "#ffffff"
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                        }
+                        
+                        delegate: ItemDelegate {
+                            width: presetComboBox.width
+                            height: 26
+                            contentItem: Text {
+                                text: modelData
+                                color: highlighted ? root.themeContrastColor : "#aaaaaa"
+                                font.pixelSize: 12
+                                elide: Text.ElideRight
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                            background: Rectangle {
+                                color: highlighted ? root.themeColor : "#181818"
+                            }
+                        }
+                        
+                        popup: Popup {
+                            y: presetComboBox.height
+                            width: presetComboBox.width
+                            implicitHeight: Math.min(200, contentItem.implicitHeight)
+                            padding: 1
+                            
+                            contentItem: ListView {
+                                clip: true
+                                implicitHeight: contentHeight
+                                model: presetComboBox.popup.visible ? presetComboBox.delegateModel : null
+                                currentIndex: presetComboBox.highlightedIndex
+                                ScrollIndicator.vertical: ScrollIndicator { }
+                            }
+                            
+                            background: Rectangle {
+                                color: "#181818"
+                                border.color: "#333333"
+                                radius: 3
+                            }
+                        }
+                        
+                        onActivated: (index) => {
+                            var name = presetComboBox.currentText;
+                            root.activePreset = name;
+                            var details = timerBackend.getPresetDetails(name);
+                            if (details && details.mode) {
+                                root.timerMode = details.mode;
+                                if (details.mode === "countdown") {
+                                    workInput.text = details.work_minutes.toString();
+                                    breakInput.text = details.short_break_minutes.toString();
+                                    longBreakInput.text = details.long_break_minutes.toString();
+                                    lbiInput.text = details.long_break_interval.toString();
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // 1. Durations Group
                 Column {
                     width: parent.width
                     spacing: 12
                     
-                    SettingNumberInput { id: workInput; labelText: "Work Duration (min)"; themeColor: root.themeColor }
-                    SettingNumberInput { id: breakInput; labelText: "Short Break (min)"; themeColor: root.themeColor }
-                    SettingNumberInput { id: longBreakInput; labelText: "Long Break (min)"; themeColor: root.themeColor }
-                    SettingNumberInput { id: lbiInput; labelText: "Long Break Interval (cycles)"; themeColor: root.themeColor; topValidator: 99 }
+                    SettingNumberInput { id: workInput; labelText: "Work Duration (min)"; themeColor: root.themeColor; enabled: root.timerMode !== "flowtime"; opacity: enabled ? 1.0 : 0.4 }
+                    SettingNumberInput { id: breakInput; labelText: "Short Break (min)"; themeColor: root.themeColor; enabled: root.timerMode !== "flowtime"; opacity: enabled ? 1.0 : 0.4 }
+                    SettingNumberInput { id: longBreakInput; labelText: "Long Break (min)"; themeColor: root.themeColor; enabled: root.timerMode !== "flowtime"; opacity: enabled ? 1.0 : 0.4 }
+                    SettingNumberInput { id: lbiInput; labelText: "Long Break Interval (cycles)"; themeColor: root.themeColor; topValidator: 99; enabled: root.timerMode !== "flowtime"; opacity: enabled ? 1.0 : 0.4 }
                 }
 
                 // Divider

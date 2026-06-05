@@ -1,83 +1,17 @@
-import os
-import json
 import time
 import math
-from PySide6.QtCore import QObject, Signal, Slot, Property, QTimer, QUrl, Qt
+from PySide6.QtCore import Slot, QTimer, QUrl, Qt
 from PySide6.QtMultimedia import QSoundEffect
 from audio import generate_chime_wav, generate_tick_wav, LateAudioStreamer
+from constants import (
+    CONFIG_FILE_NAME, CHIME_FILE_NAME, TICK_FILE_NAME, TIMER_TICK_INTERVAL_MS,
+    SECONDS_IN_MINUTE, DEFAULT_WORK_MINUTES, UI_DIR
+)
+from presets import PresetsManager
+from settings import SettingsManager
+from timer_properties import TimerProperties
 
-# Named constants to prevent magic numbers
-DEFAULT_WORK_MINUTES = 25
-DEFAULT_SHORT_BREAK_MINUTES = 5
-DEFAULT_LONG_BREAK_MINUTES = 15
-DEFAULT_ALWAYS_ON_TOP = True
-DEFAULT_SOUND_ENABLED = True
-DEFAULT_FLASH_ENABLED = True
-DEFAULT_THEME_COLOR = "#ff4d4d"
-DEFAULT_SHADER_DAMPING = 0.05
-DEFAULT_SHADER_SPEED = 0.015
-DEFAULT_METEOR_FREQUENCY = 0.4
-DEFAULT_LONG_BREAK_INTERVAL = 4
-DEFAULT_ALARM_VOLUME = 1.0
-DEFAULT_STREAM_VOLUME = 0.5
-DEFAULT_COMPACT_WIDTH_THRESHOLD = 400
-DEFAULT_COMPACT_HEIGHT_THRESHOLD = 250
-DEFAULT_CLOCK_SCALE = 1.0
-TIMER_TICK_INTERVAL_MS = 100
-SECONDS_IN_MINUTE = 60
-
-SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.dirname(SRC_DIR)
-UI_DIR = os.path.join(PROJECT_DIR, "ui")
-CONFIG_FILE_NAME = os.path.join(PROJECT_DIR, "config.json")
-CHIME_FILE_NAME = os.path.join(UI_DIR, "chime.wav")
-TICK_FILE_NAME = os.path.join(UI_DIR, "tick.wav")
-
-class TimerBackend(QObject):
-    # PySide signals to communicate state changes to QML
-    workMinutesChanged = Signal(int)
-    shortBreakMinutesChanged = Signal(int)
-    longBreakMinutesChanged = Signal(int)
-    alwaysOnTopChanged = Signal(bool)
-    soundEnabledChanged = Signal(bool)
-    flashEnabledChanged = Signal(bool)
-    themeColorChanged = Signal(str)
-    shaderDampingChanged = Signal(float)
-    shaderSpeedChanged = Signal(float)
-    meteorFrequencyChanged = Signal(float)
-    clockThemeChanged = Signal(str)
-    autoStartBreaksChanged = Signal(bool)
-    autoStartWorkChanged = Signal(bool)
-    longBreakIntervalChanged = Signal(int)
-    alarmVolumeChanged = Signal(float)
-    tickingEnabledChanged = Signal(bool)
-    compactWidthThresholdChanged = Signal(int)
-    compactHeightThresholdChanged = Signal(int)
-    clockScaleChanged = Signal(float)
-    
-    # late.sh streaming signals
-    streamEnabledChanged = Signal(bool)
-    streamVolumeChanged = Signal(float)
-    streamStatusChanged = Signal(str)
-    songTitleChanged = Signal(str)
-    streamMutedChanged = Signal(bool)
-    
-    keybindPlayPauseChanged = Signal(str)
-    keybindResetChanged = Signal(str)
-    keybindSettingsChanged = Signal(str)
-    keybindZenModeChanged = Signal(str)
-    keybindStreamChanged = Signal(str)
-    keybindMuteChanged = Signal(str)
-    
-    timeStringChanged = Signal(str)
-    progressChanged = Signal(float)
-    currentStateChanged = Signal(str)
-    isRunningChanged = Signal(bool)
-    workCountChanged = Signal(int)
-    
-    timerFinished = Signal()
-    flashScreen = Signal()
-
+class TimerBackend(TimerProperties):
     def __init__(self, config_file=CONFIG_FILE_NAME, parent=None):
         super().__init__(parent)
         self._config_file = config_file
@@ -85,7 +19,13 @@ class TimerBackend(QObject):
         self._sound_effect = None
         self._tick_effect = None
         
+        # Load presets
+        self._presets_manager = PresetsManager()
+        self._presets = self._presets_manager.presets
+        self._presets_names = self._presets_manager.presets_names
+        
         # Load configuration
+        self._settings_manager = SettingsManager(self._config_file)
         self.load_settings()
         
         # Initialize streamer
@@ -131,80 +71,44 @@ class TimerBackend(QObject):
         self._tick_effect.setVolume(self._alarm_volume * 0.4)
 
     def load_settings(self):
-        if self._config_file and os.path.exists(self._config_file):
-            try:
-                with open(self._config_file, 'r') as f:
-                    data = json.load(f)
-                self._work_minutes = int(data.get("work_minutes", DEFAULT_WORK_MINUTES))
-                self._short_break_minutes = int(data.get("short_break_minutes", DEFAULT_SHORT_BREAK_MINUTES))
-                self._long_break_minutes = int(data.get("long_break_minutes", DEFAULT_LONG_BREAK_MINUTES))
-                self._always_on_top = bool(data.get("always_on_top", DEFAULT_ALWAYS_ON_TOP))
-                self._sound_enabled = bool(data.get("sound_enabled", DEFAULT_SOUND_ENABLED))
-                self._flash_enabled = bool(data.get("flash_enabled", DEFAULT_FLASH_ENABLED))
-                self._theme_color = str(data.get("theme_color", DEFAULT_THEME_COLOR))
-                self._shader_damping = float(data.get("shader_damping", DEFAULT_SHADER_DAMPING))
-                self._shader_speed = float(data.get("shader_speed", DEFAULT_SHADER_SPEED))
-                self._meteor_frequency = float(data.get("meteor_frequency", DEFAULT_METEOR_FREQUENCY))
-                self._clock_theme = str(data.get("clock_theme", "flip"))
-                self._auto_start_breaks = bool(data.get("auto_start_breaks", False))
-                self._auto_start_work = bool(data.get("auto_start_work", False))
-                self._long_break_interval = int(data.get("long_break_interval", DEFAULT_LONG_BREAK_INTERVAL))
-                self._alarm_volume = float(data.get("alarm_volume", DEFAULT_ALARM_VOLUME))
-                self._ticking_enabled = bool(data.get("ticking_enabled", False))
-                self._compact_width_threshold = int(data.get("compact_width_threshold", DEFAULT_COMPACT_WIDTH_THRESHOLD))
-                self._compact_height_threshold = int(data.get("compact_height_threshold", DEFAULT_COMPACT_HEIGHT_THRESHOLD))
-                self._clock_scale = float(data.get("clock_scale", DEFAULT_CLOCK_SCALE))
-                
-                # Audio streaming configs
-                self._stream_enabled = bool(data.get("stream_enabled", False))
-                self._stream_volume = float(data.get("stream_volume", DEFAULT_STREAM_VOLUME))
-                
-                # Keybind configs
-                self._keybind_play_pause = str(data.get("keybind_play_pause", "Space"))
-                self._keybind_reset = str(data.get("keybind_reset", "R"))
-                self._keybind_settings = str(data.get("keybind_settings", "S"))
-                self._keybind_zen_mode = str(data.get("keybind_zen_mode", "Z"))
-                self._keybind_stream = str(data.get("keybind_stream", "P"))
-                self._keybind_mute = str(data.get("keybind_mute", "M"))
-                return
-            except Exception:
-                pass
-                
-        # Defaults
-        self._work_minutes = DEFAULT_WORK_MINUTES
-        self._short_break_minutes = DEFAULT_SHORT_BREAK_MINUTES
-        self._long_break_minutes = DEFAULT_LONG_BREAK_MINUTES
-        self._always_on_top = DEFAULT_ALWAYS_ON_TOP
-        self._sound_enabled = DEFAULT_SOUND_ENABLED
-        self._flash_enabled = DEFAULT_FLASH_ENABLED
-        self._theme_color = DEFAULT_THEME_COLOR
-        self._shader_damping = DEFAULT_SHADER_DAMPING
-        self._shader_speed = DEFAULT_SHADER_SPEED
-        self._meteor_frequency = DEFAULT_METEOR_FREQUENCY
-        self._clock_theme = "flip"
-        self._auto_start_breaks = False
-        self._auto_start_work = False
-        self._long_break_interval = DEFAULT_LONG_BREAK_INTERVAL
-        self._alarm_volume = DEFAULT_ALARM_VOLUME
-        self._ticking_enabled = False
-        self._compact_width_threshold = DEFAULT_COMPACT_WIDTH_THRESHOLD
-        self._compact_height_threshold = DEFAULT_COMPACT_HEIGHT_THRESHOLD
-        self._clock_scale = DEFAULT_CLOCK_SCALE
-        self._stream_enabled = False
-        self._stream_volume = DEFAULT_STREAM_VOLUME
+        settings = self._settings_manager.load()
+        self._work_minutes = settings["work_minutes"]
+        self._short_break_minutes = settings["short_break_minutes"]
+        self._long_break_minutes = settings["long_break_minutes"]
+        self._always_on_top = settings["always_on_top"]
+        self._sound_enabled = settings["sound_enabled"]
+        self._flash_enabled = settings["flash_enabled"]
+        self._theme_color = settings["theme_color"]
+        self._shader_damping = settings["shader_damping"]
+        self._shader_speed = settings["shader_speed"]
+        self._meteor_frequency = settings["meteor_frequency"]
+        self._clock_theme = settings["clock_theme"]
+        self._auto_start_breaks = settings["auto_start_breaks"]
+        self._auto_start_work = settings["auto_start_work"]
+        self._long_break_interval = settings["long_break_interval"]
+        self._alarm_volume = settings["alarm_volume"]
+        self._ticking_enabled = settings["ticking_enabled"]
+        self._compact_width_threshold = settings["compact_width_threshold"]
+        self._compact_height_threshold = settings["compact_height_threshold"]
+        self._clock_scale = settings["clock_scale"]
         
-        self._keybind_play_pause = "Space"
-        self._keybind_reset = "R"
-        self._keybind_settings = "S"
-        self._keybind_zen_mode = "Z"
-        self._keybind_stream = "P"
-        self._keybind_mute = "M"
+        # Audio streaming configs
+        self._stream_enabled = settings["stream_enabled"]
+        self._stream_volume = settings["stream_volume"]
         
-        self.save_settings_to_file()
+        # Preset configs
+        self._active_preset = settings["active_preset"]
+        self._timer_mode = settings["timer_mode"]
+        
+        # Keybind configs
+        self._keybind_play_pause = settings["keybind_play_pause"]
+        self._keybind_reset = settings["keybind_reset"]
+        self._keybind_settings = settings["keybind_settings"]
+        self._keybind_zen_mode = settings["keybind_zen_mode"]
+        self._keybind_stream = settings["keybind_stream"]
+        self._keybind_mute = settings["keybind_mute"]
 
     def save_settings_to_file(self):
-        if not self._config_file:
-            return
         data = {
             "work_minutes": self._work_minutes,
             "short_break_minutes": self._short_break_minutes,
@@ -227,6 +131,8 @@ class TimerBackend(QObject):
             "clock_scale": self._clock_scale,
             "stream_enabled": self._stream_enabled,
             "stream_volume": self._stream_volume,
+            "active_preset": self._active_preset,
+            "timer_mode": self._timer_mode,
             "keybind_play_pause": self._keybind_play_pause,
             "keybind_reset": self._keybind_reset,
             "keybind_settings": self._keybind_settings,
@@ -234,11 +140,7 @@ class TimerBackend(QObject):
             "keybind_stream": self._keybind_stream,
             "keybind_mute": self._keybind_mute
         }
-        try:
-            with open(self._config_file, 'w') as f:
-                json.dump(data, f, indent=2)
-        except IOError:
-            pass
+        self._settings_manager.save(data)
 
     def apply_always_on_top(self, enabled):
         if not self._view:
@@ -251,13 +153,20 @@ class TimerBackend(QObject):
         self._view.show()
 
     def update_time_string(self):
-        minutes = int(math.ceil(self._seconds_remaining)) // SECONDS_IN_MINUTE
-        seconds = int(math.ceil(self._seconds_remaining)) % SECONDS_IN_MINUTE
+        if self._timer_mode == "flowtime" and self._current_state == "work":
+            minutes = int(self._seconds_remaining) // SECONDS_IN_MINUTE
+            seconds = int(self._seconds_remaining) % SECONDS_IN_MINUTE
+        else:
+            minutes = int(math.ceil(self._seconds_remaining)) // SECONDS_IN_MINUTE
+            seconds = int(math.ceil(self._seconds_remaining)) % SECONDS_IN_MINUTE
+            
         self.timeStringChanged.emit(f"{minutes:02d}:{seconds:02d}")
         
         progress = 0.0
         if self._total_seconds_to_run > 0:
             progress = max(0.0, min(1.0, self._seconds_remaining / self._total_seconds_to_run))
+        elif self._timer_mode == "flowtime" and self._current_state == "work":
+            progress = 1.0
         self.progressChanged.emit(progress)
 
     def _on_tick(self):
@@ -265,22 +174,41 @@ class TimerBackend(QObject):
             return
         
         now = time.monotonic()
-        remaining = self._target_end_monotonic - now
         
-        old_sec = int(math.ceil(self._seconds_remaining))
-        new_sec = int(math.ceil(max(0.0, remaining)))
-        
-        if old_sec != new_sec and new_sec > 0:
-            if self._ticking_enabled and self._tick_effect:
-                self._tick_effect.play()
+        if self._timer_mode == "flowtime" and self._current_state == "work":
+            elapsed = now - self._target_end_monotonic
+            
+            # 24-hour limit check: if user walked away, reset and discard the session
+            if elapsed >= 86400:
+                self.reset()
+                return
                 
-        if remaining <= 0:
-            self._seconds_remaining = 0.0
+            old_sec = int(self._seconds_remaining)
+            new_sec = int(elapsed)
+            
+            if old_sec != new_sec and new_sec > 0:
+                if self._ticking_enabled and self._tick_effect:
+                    self._tick_effect.play()
+                    
+            self._seconds_remaining = elapsed
             self.update_time_string()
-            self._on_timer_complete()
         else:
-            self._seconds_remaining = remaining
-            self.update_time_string()
+            remaining = self._target_end_monotonic - now
+            
+            old_sec = int(math.ceil(self._seconds_remaining))
+            new_sec = int(math.ceil(max(0.0, remaining)))
+            
+            if old_sec != new_sec and new_sec > 0:
+                if self._ticking_enabled and self._tick_effect:
+                    self._tick_effect.play()
+                    
+            if remaining <= 0:
+                self._seconds_remaining = 0.0
+                self.update_time_string()
+                self._on_timer_complete()
+            else:
+                self._seconds_remaining = remaining
+                self.update_time_string()
 
     def _on_timer_complete(self):
         self._is_running = False
@@ -305,10 +233,18 @@ class TimerBackend(QObject):
                 self._total_seconds_to_run = self._short_break_minutes * SECONDS_IN_MINUTE
         else:
             self._current_state = "work"
-            self._total_seconds_to_run = self._work_minutes * SECONDS_IN_MINUTE
+            if self._timer_mode == "flowtime":
+                self._total_seconds_to_run = 0
+            else:
+                self._total_seconds_to_run = self._work_minutes * SECONDS_IN_MINUTE
             
-        self._seconds_remaining = float(self._total_seconds_to_run)
-        self._paused_seconds_remaining = float(self._total_seconds_to_run)
+        if self._timer_mode == "flowtime" and self._current_state == "work":
+            self._seconds_remaining = 0.0
+            self._paused_seconds_remaining = 0.0
+        else:
+            self._seconds_remaining = float(self._total_seconds_to_run)
+            self._paused_seconds_remaining = float(self._total_seconds_to_run)
+            
         self.currentStateChanged.emit(self._current_state)
         self.update_time_string()
         
@@ -327,7 +263,10 @@ class TimerBackend(QObject):
             return
         self._is_running = True
         self.isRunningChanged.emit(True)
-        self._target_end_monotonic = time.monotonic() + self._seconds_remaining
+        if self._timer_mode == "flowtime" and self._current_state == "work":
+            self._target_end_monotonic = time.monotonic() - self._seconds_remaining
+        else:
+            self._target_end_monotonic = time.monotonic() + self._seconds_remaining
         self._timer.start()
 
     @Slot()
@@ -337,7 +276,10 @@ class TimerBackend(QObject):
         self._is_running = False
         self.isRunningChanged.emit(False)
         self._timer.stop()
-        self._seconds_remaining = max(0.0, self._target_end_monotonic - time.monotonic())
+        if self._timer_mode == "flowtime" and self._current_state == "work":
+            self._seconds_remaining = time.monotonic() - self._target_end_monotonic
+        else:
+            self._seconds_remaining = max(0.0, self._target_end_monotonic - time.monotonic())
         self._paused_seconds_remaining = self._seconds_remaining
 
     @Slot()
@@ -347,18 +289,155 @@ class TimerBackend(QObject):
         self._timer.stop()
         
         if self._current_state == "work":
-            self._total_seconds_to_run = self._work_minutes * SECONDS_IN_MINUTE
+            if self._timer_mode == "flowtime":
+                self._total_seconds_to_run = 0
+            else:
+                self._total_seconds_to_run = self._work_minutes * SECONDS_IN_MINUTE
         elif self._current_state == "short_break":
-            self._total_seconds_to_run = self._short_break_minutes * SECONDS_IN_MINUTE
+            if self._timer_mode != "flowtime":
+                self._total_seconds_to_run = self._short_break_minutes * SECONDS_IN_MINUTE
         else:
-            self._total_seconds_to_run = self._long_break_minutes * SECONDS_IN_MINUTE
+            if self._timer_mode != "flowtime":
+                self._total_seconds_to_run = self._long_break_minutes * SECONDS_IN_MINUTE
             
-        self._seconds_remaining = float(self._total_seconds_to_run)
-        self._paused_seconds_remaining = float(self._total_seconds_to_run)
+        if self._timer_mode == "flowtime" and self._current_state == "work":
+            self._seconds_remaining = 0.0
+            self._paused_seconds_remaining = 0.0
+        else:
+            self._seconds_remaining = float(self._total_seconds_to_run)
+            self._paused_seconds_remaining = float(self._total_seconds_to_run)
         self.update_time_string()
 
-    @Slot(int, int, int, bool, bool, bool, str, float, float, float, str, bool, bool, int, float, bool, bool, float, int, int, float)
-    def updateSettings(self, work, short_break, long_break, aot, sound, flash, color, damping, shader_speed, meteor_freq, clock_theme, auto_breaks, auto_work, lbi, volume, ticking, stream_enabled, stream_volume, compact_width, compact_height, clock_scale):
+    @Slot(str, result=dict)
+    def getPresetDetails(self, name):
+        return self._presets_manager.get_preset_details(name)
+
+    @Slot()
+    def stopFlowtimeAndStartBreak(self):
+        if self._timer_mode != "flowtime" or self._current_state != "work":
+            return
+            
+        self._is_running = False
+        self.isRunningChanged.emit(False)
+        self._timer.stop()
+        
+        elapsed_seconds = self._seconds_remaining
+        elapsed_minutes = elapsed_seconds / 60.0
+        
+        if elapsed_minutes < 25.0:
+            break_minutes = 5
+        elif elapsed_minutes < 50.0:
+            break_minutes = 8
+        elif elapsed_minutes < 90.0:
+            break_minutes = 10
+        else:
+            break_minutes = 20
+            
+        self._work_count += 1
+        self.workCountChanged.emit(self._work_count)
+        
+        if self._work_count % self._long_break_interval == 0:
+            self._current_state = "long_break"
+        else:
+            self._current_state = "short_break"
+            
+        self._total_seconds_to_run = break_minutes * SECONDS_IN_MINUTE
+        self._seconds_remaining = float(self._total_seconds_to_run)
+        self._paused_seconds_remaining = float(self._total_seconds_to_run)
+        
+        self.currentStateChanged.emit(self._current_state)
+        self.update_time_string()
+        self.start()
+
+    @Slot()
+    def skip(self):
+        self._is_running = False
+        self.isRunningChanged.emit(False)
+        self._timer.stop()
+        
+        if self._current_state == "work":
+            if self._timer_mode == "flowtime":
+                self.stopFlowtimeAndStartBreak()
+                return
+            else:
+                self._work_count += 1
+                self.workCountChanged.emit(self._work_count)
+                if self._work_count % self._long_break_interval == 0:
+                    self._current_state = "long_break"
+                    self._total_seconds_to_run = self._long_break_minutes * SECONDS_IN_MINUTE
+                else:
+                    self._current_state = "short_break"
+                    self._total_seconds_to_run = self._short_break_minutes * SECONDS_IN_MINUTE
+        else:
+            self._current_state = "work"
+            if self._timer_mode == "flowtime":
+                self._total_seconds_to_run = 0
+            else:
+                self._total_seconds_to_run = self._work_minutes * SECONDS_IN_MINUTE
+                
+        if self._timer_mode == "flowtime" and self._current_state == "work":
+            self._seconds_remaining = 0.0
+            self._paused_seconds_remaining = 0.0
+        else:
+            self._seconds_remaining = float(self._total_seconds_to_run)
+            self._paused_seconds_remaining = float(self._total_seconds_to_run)
+            
+        self.currentStateChanged.emit(self._current_state)
+        self.update_time_string()
+        
+        should_auto_start = False
+        if self._current_state in ("short_break", "long_break") and self._auto_start_breaks:
+            should_auto_start = True
+        elif self._current_state == "work" and self._auto_start_work:
+            should_auto_start = True
+            
+        if should_auto_start:
+            self.start()
+
+    @Slot()
+    def resetAll(self):
+        self._is_running = False
+        self.isRunningChanged.emit(False)
+        self._timer.stop()
+        
+        self._current_state = "work"
+        self._work_count = 0
+        self.workCountChanged.emit(0)
+        self.currentStateChanged.emit("work")
+        
+        if self._timer_mode == "flowtime":
+            self._total_seconds_to_run = 0
+            self._seconds_remaining = 0.0
+            self._paused_seconds_remaining = 0.0
+        else:
+            self._total_seconds_to_run = self._work_minutes * SECONDS_IN_MINUTE
+            self._seconds_remaining = float(self._total_seconds_to_run)
+            self._paused_seconds_remaining = float(self._total_seconds_to_run)
+            
+        self.update_time_string()
+
+    @Slot(int, int, int, bool, bool, bool, str, float, float, float, str, bool, bool, int, float, bool, bool, float, int, int, float, str, str)
+    def updateSettings(self, work, short_break, long_break, aot, sound, flash, color, damping, shader_speed, meteor_freq, clock_theme="digital", auto_breaks=False, auto_work=False, lbi=4, volume=1.0, ticking=False, stream_enabled=False, stream_volume=0.5, compact_width=400, compact_height=250, clock_scale=1.0, active_preset="Pomodoro", timer_mode="countdown"):
+        session_params_changed = (
+            self._timer_mode != timer_mode or
+            self._active_preset != active_preset or
+            self._work_minutes != work or
+            self._short_break_minutes != short_break or
+            self._long_break_minutes != long_break or
+            self._long_break_interval != lbi
+        )
+        
+        # Check if we are mid-session
+        is_mid_session = self._is_running or (
+            self._current_state == "work" and (
+                self._seconds_remaining > 0.0 if self._timer_mode == "flowtime" else self._seconds_remaining < self._work_minutes * SECONDS_IN_MINUTE
+            )
+        ) or (
+            self._current_state == "short_break" and self._seconds_remaining < self._short_break_minutes * SECONDS_IN_MINUTE
+        ) or (
+            self._current_state == "long_break" and self._seconds_remaining < self._long_break_minutes * SECONDS_IN_MINUTE
+        )
+
         self._work_minutes = work
         self._short_break_minutes = short_break
         self._long_break_minutes = long_break
@@ -401,6 +480,14 @@ class TimerBackend(QObject):
             self.streamEnabledChanged.emit(stream_enabled)
             self.streamMutedChanged.emit(self.streamMuted)
             
+        if self._active_preset != active_preset:
+            self._active_preset = active_preset
+            self.activePresetChanged.emit(active_preset)
+            
+        if self._timer_mode != timer_mode:
+            self._timer_mode = timer_mode
+            self.timerModeChanged.emit(timer_mode)
+            
         self.workMinutesChanged.emit(work)
         self.shortBreakMinutesChanged.emit(short_break)
         self.longBreakMinutesChanged.emit(long_break)
@@ -421,172 +508,8 @@ class TimerBackend(QObject):
         
         self.save_settings_to_file()
         
-        if not self._is_running:
+        if (session_params_changed and is_mid_session) or not self._is_running:
             self.reset()
 
-    @Slot(str, str, str, str, str, str)
-    def updateKeybinds(self, play_pause, reset, settings, zen_mode, stream, mute):
-        self._keybind_play_pause = play_pause
-        self._keybind_reset = reset
-        self._keybind_settings = settings
-        self._keybind_zen_mode = zen_mode
-        self._keybind_stream = stream
-        self._keybind_mute = mute
-        
-        self.keybindPlayPauseChanged.emit(play_pause)
-        self.keybindResetChanged.emit(reset)
-        self.keybindSettingsChanged.emit(settings)
-        self.keybindZenModeChanged.emit(zen_mode)
-        self.keybindStreamChanged.emit(stream)
-        self.keybindMuteChanged.emit(mute)
-        
-        self.save_settings_to_file()
-
-    @Slot(float)
-    def setAlarmVolume(self, volume):
-        self._alarm_volume = volume
-        self.save_settings_to_file()
-        # Optionally, play a tiny tick sound or beep to preview volume, but for now just save.
-        # Alarm volume is used by audio.py when an alarm plays.
-
-    # Qt Properties exposed to QML Engine
-    @Property(int, notify=workMinutesChanged)
-    def workMinutes(self): return self._work_minutes
-
-    @Property(int, notify=shortBreakMinutesChanged)
-    def shortBreakMinutes(self): return self._short_break_minutes
-
-    @Property(int, notify=longBreakMinutesChanged)
-    def longBreakMinutes(self): return self._long_break_minutes
-
-    @Property(bool, notify=alwaysOnTopChanged)
-    def alwaysOnTop(self): return self._always_on_top
-
-    @Property(bool, notify=soundEnabledChanged)
-    def soundEnabled(self): return self._sound_enabled
-
-    @Property(bool, notify=flashEnabledChanged)
-    def flashEnabled(self): return self._flash_enabled
-
-    @Property(str, notify=themeColorChanged)
-    def themeColor(self): return self._theme_color
-
-    @Property(float, notify=shaderDampingChanged)
-    def shaderDamping(self): return self._shader_damping
-
-    @Property(float, notify=shaderSpeedChanged)
-    def shaderSpeed(self): return self._shader_speed
-
-    @Property(float, notify=meteorFrequencyChanged)
-    def meteorFrequency(self): return self._meteor_frequency
-
-    @Property(str, notify=clockThemeChanged)
-    def clockTheme(self): return self._clock_theme
-
-    @Property(bool, notify=autoStartBreaksChanged)
-    def autoStartBreaks(self): return self._auto_start_breaks
-
-    @Property(bool, notify=autoStartWorkChanged)
-    def autoStartWork(self): return self._auto_start_work
-
-    @Property(int, notify=longBreakIntervalChanged)
-    def longBreakInterval(self): return self._long_break_interval
-
-    @Property(float, notify=alarmVolumeChanged)
-    def alarmVolume(self): return self._alarm_volume
-
-    @Property(bool, notify=tickingEnabledChanged)
-    def tickingEnabled(self): return self._ticking_enabled
-
-    @Property(int, notify=compactWidthThresholdChanged)
-    def compactWidthThreshold(self): return self._compact_width_threshold
-
-    @Property(int, notify=compactHeightThresholdChanged)
-    def compactHeightThreshold(self): return self._compact_height_threshold
-
-    @Property(float, notify=clockScaleChanged)
-    def clockScale(self): return self._clock_scale
-
-    @Property(bool, notify=streamEnabledChanged)
-    def streamEnabled(self): return self._stream_enabled
-
-    @Property(bool, notify=streamMutedChanged)
-    def streamMuted(self): return not self._stream_enabled or self._streamer._is_muted
-
-    @Property(float, notify=streamVolumeChanged)
-    def streamVolume(self): return self._stream_volume
-
-    @Property(str, notify=streamStatusChanged)
-    def streamStatus(self): return self._stream_status
-
-    @Property(str, notify=songTitleChanged)
-    def songTitle(self): return self._song_title
-
-    @Property(str, notify=timeStringChanged)
-    def timeString(self): 
-        m = int(math.ceil(self._seconds_remaining)) // SECONDS_IN_MINUTE
-        s = int(math.ceil(self._seconds_remaining)) % SECONDS_IN_MINUTE
-        return f"{m:02d}:{s:02d}"
-
-    @Property(float, notify=progressChanged)
-    def progress(self):
-        if self._total_seconds_to_run <= 0: return 0.0
-        return max(0.0, min(1.0, self._seconds_remaining / self._total_seconds_to_run))
-
-    @Property(str, notify=currentStateChanged)
-    def currentState(self): return self._current_state
-
-    @Property(bool, notify=isRunningChanged)
-    def isRunning(self): return self._is_running
-
-    @Property(int, notify=workCountChanged)
-    def workCount(self): return self._work_count
-
-    @Property(str, notify=keybindPlayPauseChanged)
-    def keybindPlayPause(self): return self._keybind_play_pause
-
-    @Property(str, notify=keybindResetChanged)
-    def keybindReset(self): return self._keybind_reset
-
-    @Property(str, notify=keybindSettingsChanged)
-    def keybindSettings(self): return self._keybind_settings
-
-    @Property(str, notify=keybindZenModeChanged)
-    def keybindZenMode(self): return self._keybind_zen_mode
-
-    @Property(str, notify=keybindStreamChanged)
-    def keybindStream(self): return self._keybind_stream
-
-    @Property(str, notify=keybindMuteChanged)
-    def keybindMute(self): return self._keybind_mute
-
-    def _on_stream_status_changed(self, status):
-        if self._stream_status != status:
-            self._stream_status = status
-            self.streamStatusChanged.emit(status)
-
-    def _on_song_title_changed(self, title):
-        if self._song_title != title:
-            self._song_title = title
-            self.songTitleChanged.emit(title)
-
-    @Slot()
-    def toggleStream(self):
-        self._streamer.toggle_mute()
-        
-        if not self._stream_enabled:
-            self._stream_enabled = True
-            self.streamEnabledChanged.emit(True)
-            self.save_settings_to_file()
-            
-        self.streamMutedChanged.emit(self.streamMuted)
-
-    @Slot(float)
-    def setStreamVolume(self, volume):
-        self._stream_volume = volume
-        self._streamer.set_volume(volume)
-        self.streamVolumeChanged.emit(volume)
-        self.save_settings_to_file()
-    
     def cleanup(self):
         self._streamer.stop()

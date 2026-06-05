@@ -20,6 +20,8 @@ Item {
     property bool soundEnabled: true
     property real alarmVolume: 0.5
     property real streamVolume: 0.5
+    property string timerMode: "countdown"
+    property string currentState: "work"
 
     // Button & Layout Dimensions Constants
     readonly property int controlHeight: 30
@@ -38,6 +40,7 @@ Item {
     signal toggleMuteClicked()
     signal requestAlarmVolume(real value)
     signal requestStreamVolume(real value)
+    signal takeBreakClicked()
 
     width: Math.max(controlsRow.width, 240)
     height: controlsRow.height + 22
@@ -94,7 +97,7 @@ Item {
         // Play/Pause Button
         Rectangle {
             id: playPauseButton
-            width: root.playPauseWidth
+            width: (root.timerMode === "flowtime" && root.currentState === "work") ? 100 : root.playPauseWidth
             height: root.controlHeight
             radius: root.controlRadius
             color: playMouse.containsMouse ? "#222222" : "#111111"
@@ -102,7 +105,12 @@ Item {
             border.width: 1
             
             Text {
-                text: root.isRunning ? "PAUSE" : "START"
+                text: {
+                    if (root.timerMode === "flowtime" && root.currentState === "work") {
+                        return root.isRunning ? "PAUSE FOCUS" : "START FOCUS";
+                    }
+                    return root.isRunning ? "PAUSE" : "START";
+                }
                 color: "#ffffff"
                 anchors.centerIn: parent
                 font.pixelSize: 11
@@ -114,6 +122,33 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: true
                 onClicked: root.playPauseClicked()
+            }
+        }
+        
+        // Take Break Button (Flowtime only)
+        Rectangle {
+            id: takeBreakButton
+            width: 90
+            height: root.controlHeight
+            radius: root.controlRadius
+            color: takeBreakMouse.containsMouse ? "#222222" : "#111111"
+            border.color: takeBreakMouse.containsMouse ? root.themeColor : "#333333"
+            border.width: 1
+            visible: root.timerMode === "flowtime" && root.currentState === "work"
+            
+            Text {
+                text: "TAKE BREAK"
+                color: "#ffffff"
+                anchors.centerIn: parent
+                font.pixelSize: 11
+                font.bold: true
+            }
+            
+            MouseArea {
+                id: takeBreakMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: root.takeBreakClicked()
             }
         }
         
