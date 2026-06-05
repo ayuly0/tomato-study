@@ -59,7 +59,7 @@ Item {
                 width: parent.width
                 height: card.height
                 y: -card.height / 2
-                text: card.value
+                text: card.prevValue
                 color: "#ffffff"
                 font.pixelSize: card.height * 0.75
                 font.bold: true

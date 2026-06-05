@@ -25,6 +25,8 @@ def test_initial_state():
     assert backend.timeString == f"{DEFAULT_WORK_MINUTES:02d}:00"
     assert backend.streamEnabled is False
     assert backend.streamVolume == 0.5
+    assert backend.streamStatus == "idle"
+    assert backend.songTitle == ""
 
 def test_settings_updates():
     backend = TimerBackend(config_file=None)

@@ -9,9 +9,18 @@
   "shader_damping": 0.05,
   "shader_speed": 0.015,
   "meteor_frequency": 0.4,
-  "auto_start_breaks": false,
-  "auto_start_work": false,
+  "clock_theme": "flip",
+  "auto_start_breaks": true,
+  "auto_start_work": true,
   "long_break_interval": 4,
-  "alarm_volume": 1.0,
-  "ticking_enabled": false
+  "alarm_volume": 0.7000000000000001,
+  "ticking_enabled": true,
+  "stream_enabled": true,
+  "stream_volume": 0.5,
+  "keybind_play_pause": "Space",
+  "keybind_reset": "R",
+  "keybind_settings": "S",
+  "keybind_zen_mode": "Z",
+  "keybind_stream": "P",
+  "keybind_mute": "M"
 }

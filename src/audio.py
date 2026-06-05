@@ -5,7 +5,8 @@ import urllib.request
 import wave
 import struct
 import math
-from PySide6.QtCore import QObject, QUrl
+import re
+from PySide6.QtCore import QObject, QUrl, Signal
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 # Named constants to avoid magic numbers
@@ -21,11 +22,11 @@ TIMEOUT_SEC = 5
 
 class LocalStreamProxy:
     """A local TCP HTTP proxy server that forwards streaming audio from an HTTPS source
-
-    to a plain HTTP port, bypassing OS-specific TLS handshake issues in GStreamer/FFmpeg.
+    to a plain HTTP port, parsing and stripping embedded ICY metadata.
     """
-    def __init__(self, target_url):
+    def __init__(self, target_url, metadata_callback=None):
         self.target_url = target_url
+        self.metadata_callback = metadata_callback
         self.server_socket = None
         self.port = 0
         self.thread = None
@@ -85,13 +86,49 @@ class LocalStreamProxy:
                 b"Cache-Control: no-cache\r\n\r\n"
             )
             
-            req = urllib.request.Request(self.target_url, headers={"User-Agent": "Mozilla/5.0"})
+            req = urllib.request.Request(
+                self.target_url, 
+                headers={
+                    "User-Agent": "Mozilla/5.0",
+                    "Icy-MetaData": "1"
+                }
+            )
             with urllib.request.urlopen(req, timeout=TIMEOUT_SEC) as response:
-                while self.running:
-                    data = response.read(BUFFER_SIZE)
-                    if not data:
-                        break
-                    client_sock.sendall(data)
+                headers = {k.lower(): v for k, v in response.getheaders()}
+                metaint = int(headers.get("icy-metaint", 0))
+                
+                if metaint > 0:
+                    while self.running:
+                        bytes_to_read = metaint
+                        while bytes_to_read > 0 and self.running:
+                            chunk_size = min(bytes_to_read, BUFFER_SIZE)
+                            data = response.read(chunk_size)
+                            if not data:
+                                break
+                            client_sock.sendall(data)
+                            bytes_to_read -= len(data)
+                            
+                        if not self.running:
+                            break
+                            
+                        len_byte = response.read(1)
+                        if not len_byte:
+                            break
+                        metadata_len = len_byte[0] * 16
+                        
+                        if metadata_len > 0:
+                            meta_data = response.read(metadata_len)
+                            if self.metadata_callback:
+                                meta_str = meta_data.decode('utf-8', errors='ignore')
+                                match = re.search(r"StreamTitle='([^']*)'", meta_str)
+                                if match:
+                                    self.metadata_callback(match.group(1))
+                else:
+                    while self.running:
+                        data = response.read(BUFFER_SIZE)
+                        if not data:
+                            break
+                        client_sock.sendall(data)
         except Exception:
             pass
         finally:
@@ -103,6 +140,9 @@ class LocalStreamProxy:
 
 class LateAudioStreamer(QObject):
     """Manages the lifecycle, playback state, and volume of the late.sh background music stream."""
+    statusChanged = Signal(str)
+    songTitleChanged = Signal(str)
+
     def __init__(self, target_url="https://audio.late.sh/stream", parent=None):
         super().__init__(parent)
         self.target_url = target_url
@@ -111,6 +151,9 @@ class LateAudioStreamer(QObject):
         self.audio_output = None
         self._volume = 0.5
         self._enabled = False
+        self._is_muted = False
+        self._status = "idle"
+        self.song_title = ""
         
     def set_enabled(self, enabled: bool):
         if self._enabled == enabled:
@@ -118,7 +161,7 @@ class LateAudioStreamer(QObject):
         self._enabled = enabled
         
         if enabled:
-            self.proxy = LocalStreamProxy(self.target_url)
+            self.proxy = LocalStreamProxy(self.target_url, self._on_metadata_received)
             local_url = self.proxy.start()
             
             self.player = QMediaPlayer()
@@ -126,14 +169,38 @@ class LateAudioStreamer(QObject):
             self.player.setAudioOutput(self.audio_output)
             self.audio_output.setVolume(self._volume)
             
+            self.player.mediaStatusChanged.connect(self._on_status_changed)
+            self.player.playbackStateChanged.connect(self._on_playback_state_changed)
+            self.player.errorOccurred.connect(self._on_error)
+            
             self.player.setSource(QUrl(local_url))
             self.player.play()
+            self._update_status("buffering")
         else:
             self.stop()
             
+    def toggle_mute(self):
+        if not self._enabled:
+            # If not enabled, enable it.
+            self.set_enabled(True)
+            self._is_muted = False
+        else:
+            self._is_muted = not self._is_muted
+            if self.audio_output:
+                self.audio_output.setVolume(0.0 if self._is_muted else self._volume)
+            
+            if self._is_muted:
+                self._update_status("paused")
+            else:
+                state = self.player.playbackState() if self.player else None
+                if state == QMediaPlayer.PlaybackState.PlayingState:
+                    self._update_status("playing")
+                else:
+                    self._update_status("buffering")
+            
     def set_volume(self, volume: float):
         self._volume = max(0.0, min(1.0, volume))
-        if self.audio_output:
+        if self.audio_output and not self._is_muted:
             self.audio_output.setVolume(self._volume)
             
     def stop(self):
@@ -146,6 +213,77 @@ class LateAudioStreamer(QObject):
             self.proxy.stop()
             self.proxy = None
         self._enabled = False
+        self._update_status("idle")
+        self._on_metadata_received("")
+
+    def _on_metadata_received(self, song_title):
+        # Strip trailing "| <numbers>" if present (common in lo-fi stream names)
+        title = re.sub(r'\s*\|\s*\d+\s*$', '', song_title).strip()
+        if self.song_title != title:
+            self.song_title = title
+            self.songTitleChanged.emit(title)
+
+    def _on_status_changed(self, status):
+        if self._is_muted:
+            self._update_status("paused")
+            return
+
+        if status == QMediaPlayer.MediaStatus.LoadingMedia:
+            self._update_status("buffering")
+        elif status in (QMediaPlayer.MediaStatus.LoadedMedia, QMediaPlayer.MediaStatus.BufferedMedia):
+            state = self.player.playbackState() if self.player else None
+            if state == QMediaPlayer.PlaybackState.PlayingState:
+                self._update_status("playing")
+            else:
+                self._update_status("loaded")
+        elif status == QMediaPlayer.MediaStatus.StalledMedia:
+            self._update_status("buffering")
+        elif status == QMediaPlayer.MediaStatus.InvalidMedia:
+            self._update_status("error")
+            self._handle_offline_reconnect()
+
+    def _on_playback_state_changed(self, state):
+        if self._is_muted:
+            self._update_status("paused")
+            return
+
+        if state == QMediaPlayer.PlaybackState.PlayingState:
+            self._update_status("playing")
+        elif state == QMediaPlayer.PlaybackState.PausedState:
+            self._update_status("paused")
+        elif state == QMediaPlayer.PlaybackState.StoppedState:
+            self._update_status("idle")
+
+    def _on_error(self, error=None, error_string=""):
+        if error is None and self.player:
+            error = self.player.error()
+            error_string = self.player.errorString()
+        print(f"LateAudioStreamer Player Error: {error} - {error_string}")
+        self._update_status("error")
+        self._handle_offline_reconnect()
+
+    def _handle_offline_reconnect(self):
+        if self._enabled:
+            # Reconnect automatically after 5 seconds if we went offline
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(5000, self._reconnect)
+
+    def _reconnect(self):
+        if self._enabled:
+            print("LateAudioStreamer: Reconnecting...")
+            was_muted = self._is_muted
+            self.stop()
+            self.set_enabled(True)
+            self._is_muted = was_muted
+            if self.audio_output:
+                self.audio_output.setVolume(0.0 if self._is_muted else self._volume)
+            if self._is_muted:
+                self._update_status("paused")
+
+    def _update_status(self, new_status):
+        if self._status != new_status:
+            self._status = new_status
+            self.statusChanged.emit(new_status)
 
 
 def generate_chime_wav(filename: str):

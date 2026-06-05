@@ -42,6 +42,7 @@ class TimerBackend(QObject):
     shaderDampingChanged = Signal(float)
     shaderSpeedChanged = Signal(float)
     meteorFrequencyChanged = Signal(float)
+    clockThemeChanged = Signal(str)
     autoStartBreaksChanged = Signal(bool)
     autoStartWorkChanged = Signal(bool)
     longBreakIntervalChanged = Signal(int)
@@ -51,11 +52,21 @@ class TimerBackend(QObject):
     # late.sh streaming signals
     streamEnabledChanged = Signal(bool)
     streamVolumeChanged = Signal(float)
+    streamStatusChanged = Signal(str)
+    songTitleChanged = Signal(str)
+    
+    keybindPlayPauseChanged = Signal(str)
+    keybindResetChanged = Signal(str)
+    keybindSettingsChanged = Signal(str)
+    keybindZenModeChanged = Signal(str)
+    keybindStreamChanged = Signal(str)
+    keybindMuteChanged = Signal(str)
     
     timeStringChanged = Signal(str)
     progressChanged = Signal(float)
     currentStateChanged = Signal(str)
     isRunningChanged = Signal(bool)
+    workCountChanged = Signal(int)
     
     timerFinished = Signal()
     flashScreen = Signal()
@@ -71,8 +82,12 @@ class TimerBackend(QObject):
         self.load_settings()
         
         # Initialize streamer
+        self._stream_status = "idle"
+        self._song_title = ""
         self._streamer = LateAudioStreamer()
         self._streamer.set_volume(self._stream_volume)
+        self._streamer.statusChanged.connect(self._on_stream_status_changed)
+        self._streamer.songTitleChanged.connect(self._on_song_title_changed)
         self._streamer.set_enabled(self._stream_enabled)
         
         # Core state
@@ -123,6 +138,7 @@ class TimerBackend(QObject):
                 self._shader_damping = float(data.get("shader_damping", DEFAULT_SHADER_DAMPING))
                 self._shader_speed = float(data.get("shader_speed", DEFAULT_SHADER_SPEED))
                 self._meteor_frequency = float(data.get("meteor_frequency", DEFAULT_METEOR_FREQUENCY))
+                self._clock_theme = str(data.get("clock_theme", "flip"))
                 self._auto_start_breaks = bool(data.get("auto_start_breaks", False))
                 self._auto_start_work = bool(data.get("auto_start_work", False))
                 self._long_break_interval = int(data.get("long_break_interval", DEFAULT_LONG_BREAK_INTERVAL))
@@ -132,6 +148,14 @@ class TimerBackend(QObject):
                 # Audio streaming configs
                 self._stream_enabled = bool(data.get("stream_enabled", False))
                 self._stream_volume = float(data.get("stream_volume", DEFAULT_STREAM_VOLUME))
+                
+                # Keybind configs
+                self._keybind_play_pause = str(data.get("keybind_play_pause", "Space"))
+                self._keybind_reset = str(data.get("keybind_reset", "R"))
+                self._keybind_settings = str(data.get("keybind_settings", "S"))
+                self._keybind_zen_mode = str(data.get("keybind_zen_mode", "Z"))
+                self._keybind_stream = str(data.get("keybind_stream", "P"))
+                self._keybind_mute = str(data.get("keybind_mute", "M"))
                 return
             except Exception:
                 pass
@@ -147,6 +171,7 @@ class TimerBackend(QObject):
         self._shader_damping = DEFAULT_SHADER_DAMPING
         self._shader_speed = DEFAULT_SHADER_SPEED
         self._meteor_frequency = DEFAULT_METEOR_FREQUENCY
+        self._clock_theme = "flip"
         self._auto_start_breaks = False
         self._auto_start_work = False
         self._long_break_interval = DEFAULT_LONG_BREAK_INTERVAL
@@ -154,6 +179,14 @@ class TimerBackend(QObject):
         self._ticking_enabled = False
         self._stream_enabled = False
         self._stream_volume = DEFAULT_STREAM_VOLUME
+        
+        self._keybind_play_pause = "Space"
+        self._keybind_reset = "R"
+        self._keybind_settings = "S"
+        self._keybind_zen_mode = "Z"
+        self._keybind_stream = "P"
+        self._keybind_mute = "M"
+        
         self.save_settings_to_file()
 
     def save_settings_to_file(self):
@@ -170,13 +203,20 @@ class TimerBackend(QObject):
             "shader_damping": self._shader_damping,
             "shader_speed": self._shader_speed,
             "meteor_frequency": self._meteor_frequency,
+            "clock_theme": self._clock_theme,
             "auto_start_breaks": self._auto_start_breaks,
             "auto_start_work": self._auto_start_work,
             "long_break_interval": self._long_break_interval,
             "alarm_volume": self._alarm_volume,
             "ticking_enabled": self._ticking_enabled,
             "stream_enabled": self._stream_enabled,
-            "stream_volume": self._stream_volume
+            "stream_volume": self._stream_volume,
+            "keybind_play_pause": self._keybind_play_pause,
+            "keybind_reset": self._keybind_reset,
+            "keybind_settings": self._keybind_settings,
+            "keybind_zen_mode": self._keybind_zen_mode,
+            "keybind_stream": self._keybind_stream,
+            "keybind_mute": self._keybind_mute
         }
         try:
             with open(self._config_file, 'w') as f:
@@ -240,6 +280,7 @@ class TimerBackend(QObject):
 
         if self._current_state == "work":
             self._work_count += 1
+            self.workCountChanged.emit(self._work_count)
             if self._work_count % self._long_break_interval == 0:
                 self._current_state = "long_break"
                 self._total_seconds_to_run = self._long_break_minutes * SECONDS_IN_MINUTE
@@ -300,8 +341,8 @@ class TimerBackend(QObject):
         self._paused_seconds_remaining = float(self._total_seconds_to_run)
         self.update_time_string()
 
-    @Slot(int, int, int, bool, bool, bool, str, float, float, float, bool, bool, int, float, bool, bool, float)
-    def updateSettings(self, work, short_break, long_break, aot, sound, flash, color, damping, shader_speed, meteor_freq, auto_breaks, auto_work, lbi, volume, ticking, stream_enabled, stream_volume):
+    @Slot(int, int, int, bool, bool, bool, str, float, float, float, str, bool, bool, int, float, bool, bool, float)
+    def updateSettings(self, work, short_break, long_break, aot, sound, flash, color, damping, shader_speed, meteor_freq, clock_theme, auto_breaks, auto_work, lbi, volume, ticking, stream_enabled, stream_volume):
         self._work_minutes = work
         self._short_break_minutes = short_break
         self._long_break_minutes = long_break
@@ -311,6 +352,7 @@ class TimerBackend(QObject):
         self._shader_damping = damping
         self._shader_speed = shader_speed
         self._meteor_frequency = meteor_freq
+        self._clock_theme = clock_theme
         self._auto_start_breaks = auto_breaks
         self._auto_start_work = auto_work
         self._long_break_interval = lbi
@@ -348,6 +390,7 @@ class TimerBackend(QObject):
         self.shaderDampingChanged.emit(damping)
         self.shaderSpeedChanged.emit(shader_speed)
         self.meteorFrequencyChanged.emit(meteor_freq)
+        self.clockThemeChanged.emit(clock_theme)
         self.autoStartBreaksChanged.emit(auto_breaks)
         self.autoStartWorkChanged.emit(auto_work)
         self.longBreakIntervalChanged.emit(lbi)
@@ -357,6 +400,31 @@ class TimerBackend(QObject):
         
         if not self._is_running:
             self.reset()
+
+    @Slot(str, str, str, str, str, str)
+    def updateKeybinds(self, play_pause, reset, settings, zen_mode, stream, mute):
+        self._keybind_play_pause = play_pause
+        self._keybind_reset = reset
+        self._keybind_settings = settings
+        self._keybind_zen_mode = zen_mode
+        self._keybind_stream = stream
+        self._keybind_mute = mute
+        
+        self.keybindPlayPauseChanged.emit(play_pause)
+        self.keybindResetChanged.emit(reset)
+        self.keybindSettingsChanged.emit(settings)
+        self.keybindZenModeChanged.emit(zen_mode)
+        self.keybindStreamChanged.emit(stream)
+        self.keybindMuteChanged.emit(mute)
+        
+        self.save_settings_to_file()
+
+    @Slot(float)
+    def setAlarmVolume(self, volume):
+        self._alarm_volume = volume
+        self.save_settings_to_file()
+        # Optionally, play a tiny tick sound or beep to preview volume, but for now just save.
+        # Alarm volume is used by audio.py when an alarm plays.
 
     # Qt Properties exposed to QML Engine
     @Property(int, notify=workMinutesChanged)
@@ -389,6 +457,9 @@ class TimerBackend(QObject):
     @Property(float, notify=meteorFrequencyChanged)
     def meteorFrequency(self): return self._meteor_frequency
 
+    @Property(str, notify=clockThemeChanged)
+    def clockTheme(self): return self._clock_theme
+
     @Property(bool, notify=autoStartBreaksChanged)
     def autoStartBreaks(self): return self._auto_start_breaks
 
@@ -410,6 +481,12 @@ class TimerBackend(QObject):
     @Property(float, notify=streamVolumeChanged)
     def streamVolume(self): return self._stream_volume
 
+    @Property(str, notify=streamStatusChanged)
+    def streamStatus(self): return self._stream_status
+
+    @Property(str, notify=songTitleChanged)
+    def songTitle(self): return self._song_title
+
     @Property(str, notify=timeStringChanged)
     def timeString(self): 
         m = int(math.ceil(self._seconds_remaining)) // SECONDS_IN_MINUTE
@@ -426,6 +503,53 @@ class TimerBackend(QObject):
 
     @Property(bool, notify=isRunningChanged)
     def isRunning(self): return self._is_running
+
+    @Property(int, notify=workCountChanged)
+    def workCount(self): return self._work_count
+
+    @Property(str, notify=keybindPlayPauseChanged)
+    def keybindPlayPause(self): return self._keybind_play_pause
+
+    @Property(str, notify=keybindResetChanged)
+    def keybindReset(self): return self._keybind_reset
+
+    @Property(str, notify=keybindSettingsChanged)
+    def keybindSettings(self): return self._keybind_settings
+
+    @Property(str, notify=keybindZenModeChanged)
+    def keybindZenMode(self): return self._keybind_zen_mode
+
+    @Property(str, notify=keybindStreamChanged)
+    def keybindStream(self): return self._keybind_stream
+
+    @Property(str, notify=keybindMuteChanged)
+    def keybindMute(self): return self._keybind_mute
+
+    def _on_stream_status_changed(self, status):
+        if self._stream_status != status:
+            self._stream_status = status
+            self.streamStatusChanged.emit(status)
+
+    def _on_song_title_changed(self, title):
+        if self._song_title != title:
+            self._song_title = title
+            self.songTitleChanged.emit(title)
+
+    @Slot()
+    def toggleStream(self):
+        self._streamer.toggle_mute()
+        
+        if not self._stream_enabled:
+            self._stream_enabled = True
+            self.streamEnabledChanged.emit(True)
+            self.save_settings_to_file()
+
+    @Slot(float)
+    def setStreamVolume(self, volume):
+        self._stream_volume = volume
+        self._streamer.set_volume(volume)
+        self.streamVolumeChanged.emit(volume)
+        self.save_settings_to_file()
     
     def cleanup(self):
         self._streamer.stop()
