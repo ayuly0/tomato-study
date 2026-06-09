@@ -31,25 +31,25 @@ def test_initial_state():
 
 def test_settings_updates():
     backend = TimerBackend(config_file=None)
-    backend.updateSettings(
-        work=15,
-        short_break=3,
-        long_break=8,
-        aot=False,
-        sound=False,
-        flash=False,
-        color="#ffffff",
-        damping=0.08,
-        shader_speed=0.02,
-        meteor_freq=0.6,
-        auto_breaks=True,
-        auto_work=True,
-        lbi=3,
-        volume=0.5,
-        ticking=True,
-        stream_enabled=True,
-        stream_volume=0.8
-    )
+    backend.updateSettings({
+        "workMinutes": 15,
+        "shortBreakMinutes": 3,
+        "longBreakMinutes": 8,
+        "alwaysOnTop": False,
+        "soundEnabled": False,
+        "flashEnabled": False,
+        "themeColor": "#ffffff",
+        "shaderDamping": 0.08,
+        "shaderSpeed": 0.02,
+        "meteorFrequency": 0.6,
+        "autoStartBreaks": True,
+        "autoStartWork": True,
+        "longBreakInterval": 3,
+        "alarmVolume": 0.5,
+        "tickingEnabled": True,
+        "streamEnabled": True,
+        "streamVolume": 0.8
+    })
     assert backend.workMinutes == 15
     assert backend.shortBreakMinutes == 3
     assert backend.longBreakMinutes == 8
@@ -71,25 +71,25 @@ def test_settings_updates():
 
 def test_timer_transitions():
     backend = TimerBackend(config_file=None)
-    backend.updateSettings(
-        work=10,
-        short_break=2,
-        long_break=5,
-        aot=False,
-        sound=False,
-        flash=False,
-        color="#ffffff",
-        damping=0.05,
-        shader_speed=0.015,
-        meteor_freq=0.4,
-        auto_breaks=False,
-        auto_work=False,
-        lbi=4,
-        volume=1.0,
-        ticking=False,
-        stream_enabled=False,
-        stream_volume=0.5
-    )
+    backend.updateSettings({
+        "workMinutes": 10,
+        "shortBreakMinutes": 2,
+        "longBreakMinutes": 5,
+        "alwaysOnTop": False,
+        "soundEnabled": False,
+        "flashEnabled": False,
+        "themeColor": "#ffffff",
+        "shaderDamping": 0.05,
+        "shaderSpeed": 0.015,
+        "meteorFrequency": 0.4,
+        "autoStartBreaks": False,
+        "autoStartWork": False,
+        "longBreakInterval": 4,
+        "alarmVolume": 1.0,
+        "tickingEnabled": False,
+        "streamEnabled": False,
+        "streamVolume": 0.5
+    })
     backend.start()
     assert backend.isRunning is True
     
@@ -141,25 +141,25 @@ def test_timer_transitions():
 
 def test_long_break_interval():
     backend = TimerBackend(config_file=None)
-    backend.updateSettings(
-        work=10,
-        short_break=2,
-        long_break=5,
-        aot=False,
-        sound=False,
-        flash=False,
-        color="#ffffff",
-        damping=0.05,
-        shader_speed=0.015,
-        meteor_freq=0.4,
-        auto_breaks=False,
-        auto_work=False,
-        lbi=2,
-        volume=1.0,
-        ticking=False,
-        stream_enabled=False,
-        stream_volume=0.5
-    )
+    backend.updateSettings({
+        "workMinutes": 10,
+        "shortBreakMinutes": 2,
+        "longBreakMinutes": 5,
+        "alwaysOnTop": False,
+        "soundEnabled": False,
+        "flashEnabled": False,
+        "themeColor": "#ffffff",
+        "shaderDamping": 0.05,
+        "shaderSpeed": 0.015,
+        "meteorFrequency": 0.4,
+        "autoStartBreaks": False,
+        "autoStartWork": False,
+        "longBreakInterval": 2,
+        "alarmVolume": 1.0,
+        "tickingEnabled": False,
+        "streamEnabled": False,
+        "streamVolume": 0.5
+    })
     backend.start()
     
     # 1st Work session finish -> Transition to Short Break
@@ -194,14 +194,14 @@ def test_presets_loading_and_details():
 
 def test_flowtime_tick_and_24hr_limit():
     backend = TimerBackend(config_file=None)
-    backend.updateSettings(
-        work=25, short_break=5, long_break=15, aot=False, sound=False, flash=False,
-        color="#ff4d4d", damping=0.05, shader_speed=0.015, meteor_freq=0.4,
-        clock_theme="digital", auto_breaks=False, auto_work=False, lbi=4, volume=1.0,
-        ticking=False, stream_enabled=False, stream_volume=0.5,
-        compact_width=400, compact_height=250, clock_scale=1.0,
-        active_preset="Flowtime", timer_mode="flowtime"
-    )
+    backend.updateSettings({
+        "workMinutes": 25, "shortBreakMinutes": 5, "longBreakMinutes": 15, "alwaysOnTop": False, "soundEnabled": False, "flashEnabled": False,
+        "themeColor": "#ff4d4d", "shaderDamping": 0.05, "shaderSpeed": 0.015, "meteorFrequency": 0.4,
+        "clockTheme": "digital", "autoStartBreaks": False, "autoStartWork": False, "longBreakInterval": 4, "alarmVolume": 1.0,
+        "tickingEnabled": False, "streamEnabled": False, "streamVolume": 0.5,
+        "compactWidthThreshold": 400, "compactHeightThreshold": 250, "clockScale": 1.0,
+        "activePreset": "Flowtime", "timerMode": "flowtime"
+    })
     
     assert backend.timerMode == "flowtime"
     assert backend.currentState == "work"
@@ -219,14 +219,14 @@ def test_flowtime_tick_and_24hr_limit():
 
 def test_flowtime_break_calculations():
     backend = TimerBackend(config_file=None)
-    backend.updateSettings(
-        work=25, short_break=5, long_break=15, aot=False, sound=False, flash=False,
-        color="#ff4d4d", damping=0.05, shader_speed=0.015, meteor_freq=0.4,
-        clock_theme="digital", auto_breaks=False, auto_work=False, lbi=4, volume=1.0,
-        ticking=False, stream_enabled=False, stream_volume=0.5,
-        compact_width=400, compact_height=250, clock_scale=1.0,
-        active_preset="Flowtime", timer_mode="flowtime"
-    )
+    backend.updateSettings({
+        "workMinutes": 25, "shortBreakMinutes": 5, "longBreakMinutes": 15, "alwaysOnTop": False, "soundEnabled": False, "flashEnabled": False,
+        "themeColor": "#ff4d4d", "shaderDamping": 0.05, "shaderSpeed": 0.015, "meteorFrequency": 0.4,
+        "clockTheme": "digital", "autoStartBreaks": False, "autoStartWork": False, "longBreakInterval": 4, "alarmVolume": 1.0,
+        "tickingEnabled": False, "streamEnabled": False, "streamVolume": 0.5,
+        "compactWidthThreshold": 400, "compactHeightThreshold": 250, "clockScale": 1.0,
+        "activePreset": "Flowtime", "timerMode": "flowtime"
+    })
     
     # Bracket 1: Work < 25 mins -> 5 min break
     backend.start()
@@ -280,14 +280,44 @@ def test_settings_change_mid_session_resets():
     backend._seconds_remaining = 100.0
     
     # Save settings with different preset -> should reset
-    backend.updateSettings(
-        work=25, short_break=5, long_break=15, aot=False, sound=False, flash=False,
-        color="#ff4d4d", damping=0.05, shader_speed=0.015, meteor_freq=0.4,
-        clock_theme="digital", auto_breaks=False, auto_work=False, lbi=4, volume=1.0,
-        ticking=False, stream_enabled=False, stream_volume=0.5,
-        compact_width=400, compact_height=250, clock_scale=1.0,
-        active_preset="Flowtime", timer_mode="flowtime"
-    )
+    backend.updateSettings({
+        "workMinutes": 25, "shortBreakMinutes": 5, "longBreakMinutes": 15, "alwaysOnTop": False, "soundEnabled": False, "flashEnabled": False,
+        "themeColor": "#ff4d4d", "shaderDamping": 0.05, "shaderSpeed": 0.015, "meteorFrequency": 0.4,
+        "clockTheme": "digital", "autoStartBreaks": False, "autoStartWork": False, "longBreakInterval": 4, "alarmVolume": 1.0,
+        "tickingEnabled": False, "streamEnabled": False, "streamVolume": 0.5,
+        "compactWidthThreshold": 400, "compactHeightThreshold": 250, "clockScale": 1.0,
+        "activePreset": "Flowtime", "timerMode": "flowtime"
+    })
     
     assert backend.isRunning is False
     assert backend.timeString == "00:00"
+
+def test_flowtime_break_mid_session_check():
+    backend = TimerBackend(config_file=None)
+    # Set to Flowtime mode and start break
+    backend.updateSettings({
+        "workMinutes": 25, "shortBreakMinutes": 5, "longBreakMinutes": 15, "alwaysOnTop": False, "soundEnabled": False, "flashEnabled": False,
+        "themeColor": "#ff4d4d", "shaderDamping": 0.05, "shaderSpeed": 0.015, "meteorFrequency": 0.4,
+        "clockTheme": "digital", "autoStartBreaks": False, "autoStartWork": False, "longBreakInterval": 4, "alarmVolume": 1.0,
+        "tickingEnabled": False, "streamEnabled": False, "streamVolume": 0.5,
+        "compactWidthThreshold": 400, "compactHeightThreshold": 250, "clockScale": 1.0,
+        "activePreset": "Flowtime", "timerMode": "flowtime"
+    })
+    backend.start()
+    backend._seconds_remaining = 30.0 * 60.0
+    backend.stopFlowtimeAndStartBreak() # Calculates an 8-minute break (480s)
+    
+    assert backend.currentState == "short_break"
+    assert backend._total_seconds_to_run == 480.0
+    
+    # We are partway through the break (e.g. 420 seconds left out of 480)
+    backend._seconds_remaining = 420.0
+    
+    # Attempting to save settings with changed active preset should trigger a reset (because we are mid-session)
+    backend.updateSettings({
+        "activePreset": "Pomodoro", "timerMode": "countdown"
+    })
+    
+    assert backend.isRunning is False
+    assert backend.currentState == "short_break"
+    assert backend._seconds_remaining == 300.0

@@ -31,6 +31,8 @@ class LocalStreamProxy:
         self.port = 0
         self.thread = None
         self.running = False
+        self.active_sockets = set()
+        self.sockets_lock = threading.Lock()
         
     def start(self) -> str:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -44,6 +46,13 @@ class LocalStreamProxy:
         
     def stop(self):
         self.running = False
+        with self.sockets_lock:
+            for s in list(self.active_sockets):
+                try:
+                    s.close()
+                except Exception:
+                    pass
+            self.active_sockets.clear()
         if self.server_socket:
             try:
                 # Wake up the accept() block by connecting to it
@@ -71,6 +80,11 @@ class LocalStreamProxy:
             threading.Thread(target=self._handle_client, args=(client_sock,), daemon=True).start()
 
     def _handle_client(self, client_sock):
+        with self.sockets_lock:
+            if not self.running:
+                client_sock.close()
+                return
+            self.active_sockets.add(client_sock)
         try:
             req_data = b""
             while b"\r\n\r\n" not in req_data:
@@ -132,10 +146,12 @@ class LocalStreamProxy:
         except Exception:
             pass
         finally:
-            try:
-                client_sock.close()
-            except Exception:
-                pass
+            with self.sockets_lock:
+                self.active_sockets.discard(client_sock)
+                try:
+                    client_sock.close()
+                except Exception:
+                    pass
 
 
 class LateAudioStreamer(QObject):
@@ -154,6 +170,7 @@ class LateAudioStreamer(QObject):
         self._is_muted = False
         self._status = "idle"
         self.song_title = ""
+        self._reconnect_timer = None
         
     def set_enabled(self, enabled: bool):
         if self._enabled == enabled:
@@ -161,6 +178,10 @@ class LateAudioStreamer(QObject):
         self._enabled = enabled
         
         if enabled:
+            if self._reconnect_timer is not None:
+                self._reconnect_timer.stop()
+                self._reconnect_timer = None
+                
             self.proxy = LocalStreamProxy(self.target_url, self._on_metadata_received)
             local_url = self.proxy.start()
             
@@ -204,6 +225,9 @@ class LateAudioStreamer(QObject):
             self.audio_output.setVolume(self._volume)
             
     def stop(self):
+        if self._reconnect_timer is not None:
+            self._reconnect_timer.stop()
+            self._reconnect_timer = None
         if self.player:
             self.player.stop()
             self.player = None
@@ -266,9 +290,16 @@ class LateAudioStreamer(QObject):
         if self._enabled:
             # Reconnect automatically after 5 seconds if we went offline
             from PySide6.QtCore import QTimer
-            QTimer.singleShot(5000, self._reconnect)
+            if self._reconnect_timer is not None:
+                self._reconnect_timer.stop()
+            self._reconnect_timer = QTimer(self)
+            self._reconnect_timer.setSingleShot(True)
+            self._reconnect_timer.setInterval(5000)
+            self._reconnect_timer.timeout.connect(self._reconnect)
+            self._reconnect_timer.start()
 
     def _reconnect(self):
+        self._reconnect_timer = None
         if self._enabled:
             print("LateAudioStreamer: Reconnecting...")
             was_muted = self._is_muted

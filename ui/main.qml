@@ -144,16 +144,7 @@ Item {
         onSettingsClicked: root.openSettings()
         onToggleStreamClicked: timerBackend.toggleStream()
         onToggleMuteClicked: {
-            timerBackend.updateSettings(
-                timerBackend.workMinutes, timerBackend.shortBreakMinutes, timerBackend.longBreakMinutes,
-                timerBackend.alwaysOnTop, !timerBackend.soundEnabled, timerBackend.flashEnabled,
-                timerBackend.themeColor, timerBackend.shaderDamping, timerBackend.shaderSpeed,
-                timerBackend.meteorFrequency, timerBackend.clockTheme, timerBackend.autoStartBreaks,
-                timerBackend.autoStartWork, timerBackend.longBreakInterval, timerBackend.alarmVolume,
-                timerBackend.tickingEnabled, timerBackend.streamEnabled, timerBackend.streamVolume,
-                timerBackend.compactWidthThreshold, timerBackend.compactHeightThreshold, timerBackend.clockScale,
-                timerBackend.activePreset, timerBackend.timerMode
-            );
+            timerBackend.updateSettings({ "soundEnabled": !timerBackend.soundEnabled });
         }
         onRequestAlarmVolume: (value) => timerBackend.setAlarmVolume(value)
         onRequestStreamVolume: (value) => timerBackend.setStreamVolume(value)
@@ -175,16 +166,7 @@ Item {
         themeContrastColor: root.themeContrastColor
         
         onSaveRequested: (s) => {
-            timerBackend.updateSettings(
-                s.workMinutes, s.shortBreakMinutes, s.longBreakMinutes,
-                s.alwaysOnTop, s.soundEnabled, s.flashEnabled,
-                s.themeColor, s.shaderDamping, s.shaderSpeed,
-                s.meteorFrequency, s.clockTheme, s.autoStartBreaks,
-                s.autoStartWork, s.longBreakInterval, s.alarmVolume,
-                s.tickingEnabled, s.streamEnabled, s.streamVolume,
-                s.compactWidthThreshold, s.compactHeightThreshold, s.clockScale,
-                s.activePreset, s.timerMode
-            );
+            timerBackend.updateSettings(s);
         }
         
         onUpdateKeybindsRequested: (p1, p2, p3, p4, p5, p6) => {
@@ -341,16 +323,7 @@ Item {
     Shortcut {
         sequence: timerBackend.keybindMute
         onActivated: {
-            timerBackend.updateSettings(
-                timerBackend.workMinutes, timerBackend.shortBreakMinutes, timerBackend.longBreakMinutes,
-                timerBackend.alwaysOnTop, !timerBackend.soundEnabled, timerBackend.flashEnabled,
-                timerBackend.themeColor, timerBackend.shaderDamping, timerBackend.shaderSpeed,
-                timerBackend.meteorFrequency, timerBackend.clockTheme, timerBackend.autoStartBreaks,
-                timerBackend.autoStartWork, timerBackend.longBreakInterval, timerBackend.alarmVolume,
-                timerBackend.tickingEnabled, timerBackend.streamEnabled, timerBackend.streamVolume,
-                timerBackend.compactWidthThreshold, timerBackend.compactHeightThreshold, timerBackend.clockScale,
-                timerBackend.activePreset, timerBackend.timerMode
-            );
+            timerBackend.updateSettings({ "soundEnabled": !timerBackend.soundEnabled });
         }
         enabled: settingsPanel.opacity === 0.0
     }
