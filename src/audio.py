@@ -19,6 +19,8 @@ TICK_DURATION_SEC = 0.025
 TICK_FREQ = 1400.0
 BUFFER_SIZE = 4096
 TIMEOUT_SEC = 5
+RECONNECT_DELAY_SEC = 2.0
+RETRY_DELAY_SEC = 1.0
 
 class LocalStreamProxy:
     """A local TCP HTTP proxy server that forwards streaming audio from an HTTPS source
@@ -100,49 +102,90 @@ class LocalStreamProxy:
                 b"Cache-Control: no-cache\r\n\r\n"
             )
             
-            req = urllib.request.Request(
-                self.target_url, 
-                headers={
-                    "User-Agent": "Mozilla/5.0",
-                    "Icy-MetaData": "1"
-                }
-            )
-            with urllib.request.urlopen(req, timeout=TIMEOUT_SEC) as response:
-                headers = {k.lower(): v for k, v in response.getheaders()}
-                metaint = int(headers.get("icy-metaint", 0))
-                
-                if metaint > 0:
-                    while self.running:
-                        bytes_to_read = metaint
-                        while bytes_to_read > 0 and self.running:
-                            chunk_size = min(bytes_to_read, BUFFER_SIZE)
-                            data = response.read(chunk_size)
-                            if not data:
-                                break
-                            client_sock.sendall(data)
-                            bytes_to_read -= len(data)
-                            
-                        if not self.running:
-                            break
-                            
-                        len_byte = response.read(1)
-                        if not len_byte:
-                            break
-                        metadata_len = len_byte[0] * 16
+            import time
+            while self.running:
+                try:
+                    req = urllib.request.Request(
+                        self.target_url, 
+                        headers={
+                            "User-Agent": "Mozilla/5.0",
+                            "Icy-MetaData": "1"
+                        }
+                    )
+                    try:
+                        response = urllib.request.urlopen(req, timeout=TIMEOUT_SEC)
+                    except Exception:
+                        # Sleep before retrying remote connection
+                        time.sleep(RECONNECT_DELAY_SEC)
+                        continue
                         
-                        if metadata_len > 0:
-                            meta_data = response.read(metadata_len)
-                            if self.metadata_callback:
-                                meta_str = meta_data.decode('utf-8', errors='ignore')
-                                match = re.search(r"StreamTitle='([^']*)'", meta_str)
-                                if match:
-                                    self.metadata_callback(match.group(1))
-                else:
-                    while self.running:
-                        data = response.read(BUFFER_SIZE)
-                        if not data:
-                            break
-                        client_sock.sendall(data)
+                    with response:
+                        headers = {k.lower(): v for k, v in response.getheaders()}
+                        metaint = int(headers.get("icy-metaint", 0))
+                        
+                        if metaint > 0:
+                            while self.running:
+                                bytes_to_read = metaint
+                                while bytes_to_read > 0 and self.running:
+                                    chunk_size = min(bytes_to_read, BUFFER_SIZE)
+                                    try:
+                                        data = response.read(chunk_size)
+                                    except Exception:
+                                        data = None
+                                        
+                                    if not data:
+                                        break  # Trigger remote reconnect
+                                        
+                                    try:
+                                        client_sock.sendall(data)
+                                    except Exception:
+                                        return  # Client disconnected, exit
+                                    bytes_to_read -= len(data)
+                                    
+                                if not self.running or not data:
+                                    break
+                                    
+                                try:
+                                    len_byte = response.read(1)
+                                except Exception:
+                                    break
+                                    
+                                if not len_byte:
+                                    break
+                                    
+                                metadata_len = len_byte[0] * 16
+                                if metadata_len > 0:
+                                    try:
+                                        meta_data = response.read(metadata_len)
+                                    except Exception:
+                                        break
+                                    if len(meta_data) < metadata_len:
+                                        break
+                                        
+                                    if self.metadata_callback:
+                                        meta_str = meta_data.decode('utf-8', errors='ignore')
+                                        match = re.search(r"StreamTitle='([^']*)'", meta_str)
+                                        if match:
+                                            self.metadata_callback(match.group(1))
+                        else:
+                            while self.running:
+                                try:
+                                    data = response.read(BUFFER_SIZE)
+                                except Exception:
+                                    break
+                                if not data:
+                                    break
+                                try:
+                                    client_sock.sendall(data)
+                                except Exception:
+                                    return  # Client disconnected, exit
+                    if self.running:
+                        time.sleep(RETRY_DELAY_SEC)
+                except Exception:
+                    if self.running:
+                        time.sleep(RETRY_DELAY_SEC)
+                    else:
+                        break
         except Exception:
             pass
         finally:
@@ -264,11 +307,16 @@ class LateAudioStreamer(QObject):
             self._update_status("buffering")
         elif status == QMediaPlayer.MediaStatus.InvalidMedia:
             self._update_status("error")
+            if self.player:
+                self.player.stop()
             self._handle_offline_reconnect()
 
     def _on_playback_state_changed(self, state):
         if self._is_muted:
             self._update_status("paused")
+            return
+
+        if self._status == "error":
             return
 
         if state == QMediaPlayer.PlaybackState.PlayingState:
@@ -284,6 +332,8 @@ class LateAudioStreamer(QObject):
             error_string = self.player.errorString()
         print(f"LateAudioStreamer Player Error: {error} - {error_string}")
         self._update_status("error")
+        if self.player:
+            self.player.stop()
         self._handle_offline_reconnect()
 
     def _handle_offline_reconnect(self):
