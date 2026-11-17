@@ -237,7 +237,7 @@ Item {
 
                 Image {
                     id: staticIcon
-                    source: (root.streamEnabled && !root.streamMuted) ? "file:ui/volume-up.svg" : "file:ui/volume-mute.svg"
+                    source: (root.streamEnabled && !root.streamMuted) ? "volume-up.svg" : "volume-mute.svg"
                     width: 16
                     height: 16
                     anchors.centerIn: parent

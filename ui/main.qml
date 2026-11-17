@@ -72,8 +72,8 @@ Item {
         shaderSpeed: timerBackend.shaderSpeed
         meteorFrequency: timerBackend.meteorFrequency
         isPaused: settingsPanel.opacity > 0.0
-        targetX: hoverArea.mouseX / width
-        targetY: hoverArea.mouseY / height
+        targetX: root.width > 0 ? Math.max(0.0, Math.min(1.0, globalHoverHandler.point.position.x / root.width)) : 0.5
+        targetY: root.height > 0 ? Math.max(0.0, Math.min(1.0, globalHoverHandler.point.position.y / root.height)) : 0.5
     }
     // Fullscreen click area to track background clicks and focus
     MouseArea {
@@ -154,7 +154,7 @@ Item {
     MouseArea {
         id: hoverArea
         anchors.fill: parent
-        hoverEnabled: false
+        hoverEnabled: true
         acceptedButtons: Qt.NoButton
         
         cursorShape: (zenMode || controlsHiddenByInactivity) ? Qt.BlankCursor : Qt.ArrowCursor

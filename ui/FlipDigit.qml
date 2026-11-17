@@ -191,5 +191,11 @@ Item {
                 card.prevValue = card.value;
             }
         }
+
+        onStopped: {
+            topRotation.angle = 0;
+            bottomRotation.angle = 90;
+            card.prevValue = card.value;
+        }
     }
 }

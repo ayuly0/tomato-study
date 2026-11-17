@@ -41,7 +41,7 @@ Item {
     Timer {
         id: shaderTimer
         interval: 16
-        running: !root.isPaused
+        running: !root.isPaused && root.visible && root.opacity > 0.0
         repeat: true
         onTriggered: {
             shaderEffect.currentX += (root.targetX - shaderEffect.currentX) * root.damping;
