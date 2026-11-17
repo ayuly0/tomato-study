@@ -1,5 +1,7 @@
 import sys
 import os
+import shutil
+import subprocess
 
 # Force OpenGL graphics rendering backend in Qt Quick RHI
 os.environ["QSG_RHI_BACKEND"] = "opengl"
@@ -14,20 +16,46 @@ from PySide6.QtQuick import QQuickView
 from timer import TimerBackend, UI_DIR
 
 def compile_shader():
-    """Compiles the GLSL fragment shader to QSB package at startup if qsb is available."""
+    """Compiles the GLSL fragment shader to QSB package if qsb compiler is available."""
     qsb_source = os.path.join(UI_DIR, "shader.frag")
     qsb_output = os.path.join(UI_DIR, "shader.frag.qsb")
     
     if not os.path.exists(qsb_source):
         return
-        
-    qsb_path = "/usr/lib/qt6/bin/qsb"
-    if not os.path.exists(qsb_path):
-        qsb_path = "qsb"
-        
-    import subprocess
+
+    # Check if pre-compiled qsb exists and is newer than source
+    if os.path.exists(qsb_output):
+        try:
+            if os.path.getmtime(qsb_output) >= os.path.getmtime(qsb_source):
+                return
+        except OSError:
+            pass
+
+    # Search for QSB compiler cross-platform
+    candidate_names = ["qsb", "pyside6-qsb", "qsb.exe", "pyside6-qsb.exe"]
+    qsb_bin = None
+    for name in candidate_names:
+        found = shutil.which(name)
+        if found:
+            qsb_bin = found
+            break
+
+    if not qsb_bin:
+        fallback_candidates = [
+            "/usr/lib/qt6/bin/qsb",
+            os.path.join(sys.prefix, "bin", "pyside6-qsb"),
+            os.path.join(sys.prefix, "Scripts", "pyside6-qsb.exe"),
+        ]
+        for path in fallback_candidates:
+            if os.path.exists(path):
+                qsb_bin = path
+                break
+
+    if not qsb_bin:
+        return
+
     try:
-        subprocess.run([qsb_path, "--qt6", "-o", qsb_output, qsb_source], check=True, capture_output=True)
+        subprocess.run([qsb_bin, "--qt6", "-o", qsb_output, qsb_source], check=True, capture_output=True)
     except Exception:
         pass
 
