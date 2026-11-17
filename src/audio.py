@@ -51,6 +51,10 @@ class LocalStreamProxy:
         with self.sockets_lock:
             for s in list(self.active_sockets):
                 try:
+                    s.shutdown(socket.SHUT_RDWR)
+                except Exception:
+                    pass
+                try:
                     s.close()
                 except Exception:
                     pass
@@ -95,12 +99,18 @@ class LocalStreamProxy:
                     break
                 req_data += chunk
                 
-            client_sock.sendall(
-                b"HTTP/1.1 200 OK\r\n"
-                b"Content-Type: audio/mpeg\r\n"
-                b"Connection: close\r\n"
-                b"Cache-Control: no-cache\r\n\r\n"
-            )
+            if not self.running or b"\r\n\r\n" not in req_data:
+                return
+
+            try:
+                client_sock.sendall(
+                    b"HTTP/1.1 200 OK\r\n"
+                    b"Content-Type: audio/mpeg\r\n"
+                    b"Connection: close\r\n"
+                    b"Cache-Control: no-cache\r\n\r\n"
+                )
+            except (BrokenPipeError, ConnectionResetError, OSError):
+                return
             
             import time
             while self.running:

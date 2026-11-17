@@ -224,11 +224,13 @@ class TimerBackend(QObject):
         if not self._view:
             return
         flags = self._view.flags()
+        was_visible = self._view.isVisible()
         if enabled:
             self._view.setFlags(flags | Qt.WindowStaysOnTopHint)
         else:
             self._view.setFlags(flags & ~Qt.WindowStaysOnTopHint)
-        self._view.show()
+        if was_visible:
+            self._view.show()
 
     def update_time_string(self):
         if self._timer_mode == "flowtime" and self._current_state == "work":
@@ -510,6 +512,7 @@ class TimerBackend(QObject):
             is_mid_session = self._seconds_remaining < self._total_seconds_to_run
 
         # 3. Apply settings dynamically
+        settings_modified = False
         for key, val in settings_dict.items():
             if key in self._properties_map:
                 attr, signal, caster = self._properties_map[key]
@@ -517,6 +520,7 @@ class TimerBackend(QObject):
                 if getattr(self, attr) != casted_val:
                     setattr(self, attr, casted_val)
                     signal.emit(casted_val)
+                    settings_modified = True
                     
                     # Apply specific side effects
                     if key == "alarmVolume":
@@ -532,7 +536,8 @@ class TimerBackend(QObject):
                         self._streamer.set_enabled(casted_val)
                         self.streamMutedChanged.emit(self.streamMuted)
                         
-        self.save_settings_to_file()
+        if settings_modified:
+            self.save_settings_to_file()
         
         if (session_params_changed and is_mid_session) or not self._is_running:
             self.reset()

@@ -321,3 +321,31 @@ def test_flowtime_break_mid_session_check():
     assert backend.isRunning is False
     assert backend.currentState == "short_break"
     assert backend._seconds_remaining == 300.0
+
+def test_flowtime_three_digit_minute_formatting():
+    backend = TimerBackend(config_file=None)
+    backend.updateSettings({"timerMode": "flowtime", "activePreset": "Flowtime"})
+    backend.start()
+    
+    # Simulate 100 minutes and 25 seconds
+    backend._seconds_remaining = (100 * 60) + 25
+    backend.update_time_string()
+    assert backend.timeString == "100:25"
+    
+    # Simulate 145 minutes and 5 seconds
+    backend._seconds_remaining = (145 * 60) + 5
+    backend.update_time_string()
+    assert backend.timeString == "145:05"
+
+def test_settings_no_op_preserves_running_state():
+    backend = TimerBackend(config_file=None)
+    backend.start()
+    assert backend.isRunning is True
+    
+    # Calling updateSettings with identical values should not reset or stop timer
+    backend.updateSettings({
+        "workMinutes": backend.workMinutes,
+        "shortBreakMinutes": backend.shortBreakMinutes
+    })
+    assert backend.isRunning is True
+
