@@ -98,17 +98,6 @@ python src/main.py
 
 ---
 
-## Presentation & Academic Defense Materials
-
-Created for **Introduction to the Major and Soft Skills** (Semester 1, 2026–2027) supervised by **[GVHD]**:
-
-- **[14-Slide Presentation Deck (`docs/presentation/SLIDES.md`)](docs/presentation/SLIDES.md):** Complete 10-minute slide deck script mapped across 5 speakers with slide layouts, notes, and verbatim transition cues.
-- **[Speaker Pocket Cue Cards (`docs/presentation/SPEAKER_CUE_CARDS.md`)](docs/presentation/SPEAKER_CUE_CARDS.md):** Printable quick-reference cue cards for Members 1 through 5.
-- **[Live Demo Runbook & Q&A Defense Bank (`docs/presentation/DEMO_RUNBOOK_AND_QA.md`)](docs/presentation/DEMO_RUNBOOK_AND_QA.md):** Step-by-step live demo sequence for Slide 8, offline fallback protocol, and supervisor Q&A defense answers.
-- **[2m30s Video Recording Guide (`docs/presentation/VIDEO_RECORDING_GUIDE.md`)](docs/presentation/VIDEO_RECORDING_GUIDE.md):** Scene-by-scene recording breakdown, OBS settings, voice-over timings, and caption checklist.
-
----
-
 ## Credits & Technologies
 
 - **UI Framework:** [PySide6](https://wiki.qt.io/Qt_for_Python) & Qt Quick (QML)
