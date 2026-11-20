@@ -17,6 +17,20 @@ Tested and supported on **Linux** (Ubuntu, Arch, Fedora) and **Windows** (10 & 1
 
 ---
 
+## Static Web Overview
+
+A clean, static web overview of Tomato Study is available in the [`docs/`](docs/) directory and hosted via GitHub Pages:
+
+- **Online Overview:** [https://ayuly.github.io/tomato-study/](https://ayuly.github.io/tomato-study/)
+- **Serving Guide:** See [`docs/SERVE.md`](docs/SERVE.md) for full server options and deployment instructions.
+- **Quick Local Preview:**
+  ```bash
+  python3 -m http.server -d docs 8000
+  # Open http://localhost:8000 in your browser
+  ```
+
+---
+
 ## Key Features
 
 - **Split-Card Flip Clock & Digital Clock**: Sleek and satisfying card flip animations and a clean digital layout.
