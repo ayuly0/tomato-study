@@ -68,11 +68,11 @@ Item {
             if (root.streamStatus === "buffering") return "BUFFERING LATE.SH VIBE RADIO...";
             if (root.streamStatus === "playing") {
                 if (root.songTitle !== "") {
-                    return "♫ " + root.songTitle.toUpperCase();
+                    return "AUDIO: " + root.songTitle.toUpperCase();
                 }
-                return "♫ PLAYING LATE.SH VIBE RADIO";
+                return "PLAYING LATE.SH VIBE RADIO";
             }
-            if (root.streamStatus === "error") return "⚠ STREAM CONNECTION ERROR";
+            if (root.streamStatus === "error") return "STREAM CONNECTION ERROR";
             return "STREAM CONNECTED";
         }
         color: root.themeColor
@@ -187,10 +187,11 @@ Item {
             border.width: 1
             
             Text {
-                text: "⚙"
-                color: "#ffffff"
+                text: timerBackend.icon("gear")
+                font.family: timerBackend.iconFontFamily
+                font.pixelSize: 13
+                color: settingsMouse.containsMouse ? root.themeColor : "#ffffff"
                 anchors.centerIn: parent
-                font.pixelSize: 15
             }
             
             MouseArea {
@@ -235,11 +236,12 @@ Item {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
 
-                Image {
+                Text {
                     id: staticIcon
-                    source: (root.streamEnabled && !root.streamMuted) ? "volume-up.svg" : "volume-mute.svg"
-                    width: 16
-                    height: 16
+                    text: (root.streamEnabled && !root.streamMuted) ? timerBackend.icon("volume-high") : timerBackend.icon("volume-xmark")
+                    font.family: timerBackend.iconFontFamily
+                    font.pixelSize: 13
+                    color: (root.streamEnabled && !root.streamMuted) ? root.themeColor : "#888888"
                     anchors.centerIn: parent
                 }
             }

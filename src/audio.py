@@ -2,12 +2,15 @@ import os
 import socket
 import threading
 import urllib.request
+import ssl
 import wave
 import struct
 import math
 import re
 from PySide6.QtCore import QObject, QUrl, Signal
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+
+from security import StreamIntegrity
 
 # Named constants to avoid magic numbers
 CHIME_SAMPLE_RATE = 44100.0
@@ -25,10 +28,13 @@ RETRY_DELAY_SEC = 1.0
 class LocalStreamProxy:
     """A local TCP HTTP proxy server that forwards streaming audio from an HTTPS source
     to a plain HTTP port, parsing and stripping embedded ICY metadata.
+    Enforces strict TLS verification and optional certificate pinning.
     """
-    def __init__(self, target_url, metadata_callback=None):
+    def __init__(self, target_url, metadata_callback=None, expected_fingerprint=None, ssl_context=None):
         self.target_url = target_url
         self.metadata_callback = metadata_callback
+        self.expected_fingerprint = expected_fingerprint
+        self.ssl_context = ssl_context or StreamIntegrity.create_ssl_context(expected_fingerprint)
         self.server_socket = None
         self.port = 0
         self.thread = None
@@ -123,7 +129,21 @@ class LocalStreamProxy:
                         }
                     )
                     try:
-                        response = urllib.request.urlopen(req, timeout=TIMEOUT_SEC)
+                        if not (self.target_url.startswith("https://") or self.target_url.startswith("http://")):
+                            raise ValueError(f"Unsupported stream protocol: {self.target_url}")
+                        open_kwargs = {"timeout": TIMEOUT_SEC}
+                        if self.target_url.startswith("https://") and self.ssl_context:
+                            open_kwargs["context"] = self.ssl_context
+                        response = urllib.request.urlopen(req, **open_kwargs)  # nosec B310
+                        
+                        # Validate certificate fingerprint if pinning is configured
+                        if self.expected_fingerprint and hasattr(response, "fp") and hasattr(response.fp, "raw"):
+                            sock = getattr(response.fp.raw, "_sock", None)
+                            if sock and hasattr(sock, "getpeercert"):
+                                cert_der = sock.getpeercert(binary_form=True)
+                                if cert_der and not StreamIntegrity.verify_cert_fingerprint(cert_der, self.expected_fingerprint):
+                                    response.close()
+                                    raise ssl.SSLCertVerificationError("Pinned certificate fingerprint mismatch")
                     except Exception:
                         # Sleep before retrying remote connection
                         time.sleep(RECONNECT_DELAY_SEC)

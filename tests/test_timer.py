@@ -9,13 +9,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 
 from timer import TimerBackend, DEFAULT_WORK_MINUTES
 
-# Fixture to provide a single QCoreApplication instance required for QObject creation
-@pytest.fixture(scope="session", autouse=True)
-def q_app():
-    app = QCoreApplication.instance()
-    if app is None:
-        app = QCoreApplication(sys.argv)
-    yield app
 
 def test_initial_state():
     backend = TimerBackend(config_file=None)
@@ -348,4 +341,18 @@ def test_settings_no_op_preserves_running_state():
         "shortBreakMinutes": backend.shortBreakMinutes
     })
     assert backend.isRunning is True
+
+def test_icon_library_integration():
+    backend = TimerBackend(config_file=None)
+    assert backend.iconFontFamily != ""
+    assert "Font Awesome" in backend.iconFontFamily
+    
+    # Test valid icon lookups
+    lock_glyph = backend.icon("lock")
+    gear_glyph = backend.icon("gear")
+    assert lock_glyph == "\uf023"
+    assert gear_glyph == "\uf013"
+    
+    # Test fallback for invalid icon
+    assert backend.icon("nonexistent-icon-xyz") == ""
 

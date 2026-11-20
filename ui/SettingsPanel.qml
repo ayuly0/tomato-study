@@ -40,6 +40,10 @@ import QtQuick.Controls
             streamToggle.checked = settings.streamEnabled;
             streamVolumeSlider.value = settings.streamVolume;
             
+            strictFocusToggle.checked = !!settings.strictFocusEnabled;
+            privacyLockToggle.checked = !!settings.privacyLockEnabled;
+            encryptStorageToggle.checked = !!settings.encryptStorage;
+            
             playPauseKB.currentKey = settings.keybindPlayPause;
             resetKB.currentKey = settings.keybindReset;
             settingsKB.currentKey = settings.keybindSettings;
@@ -169,6 +173,9 @@ import QtQuick.Controls
                             tickingEnabled: tickingToggle.checked,
                             streamEnabled: streamToggle.checked,
                             streamVolume: streamVolumeSlider.value,
+                            strictFocusEnabled: strictFocusToggle.checked,
+                            privacyLockEnabled: privacyLockToggle.checked,
+                            encryptStorage: encryptStorageToggle.checked,
                             compactWidthThreshold: parseInt(compactWidthInput.text) || 400,
                             compactHeightThreshold: parseInt(compactHeightInput.text) || 250,
                             clockScale: clockScaleSlider.value,
@@ -201,16 +208,27 @@ import QtQuick.Controls
                 width: settingsScroll.width - 12
                 spacing: 16
 
-                Text {
+                Row {
                     id: midSessionWarning
-                    width: parent.width
-                    wrapMode: Text.Wrap
-                    horizontalAlignment: Text.AlignHCenter
-                    color: "#ff4d4d"
-                    font.pixelSize: 11
-                    font.bold: true
-                    text: "⚠️ SAVING WILL RESET THE ACTIVE FOCUS SESSION"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 6
                     visible: timerBackend.isRunning || timerBackend.currentState !== "work" || (timerBackend.timerMode === "flowtime" ? timerBackend.progress > 0.0 : (timerBackend.progress > 0.0 && timerBackend.progress < 1.0))
+                    
+                    Text {
+                        text: timerBackend.icon("triangle-exclamation")
+                        font.family: timerBackend.iconFontFamily
+                        font.pixelSize: 11
+                        color: "#ff4d4d"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    Text {
+                        color: "#ff4d4d"
+                        font.pixelSize: 10
+                        font.bold: true
+                        font.letterSpacing: 0.5
+                        text: "SAVING WILL RESET THE ACTIVE FOCUS SESSION"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
 
                 // Preset Dropdown Row
@@ -385,6 +403,45 @@ import QtQuick.Controls
                     SettingToggle { id: autoBreaksToggle; labelText: "Auto-Start Breaks"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
                     SettingToggle { id: autoWorkToggle; labelText: "Auto-Start Work"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
                     SettingToggle { id: tickingToggle; labelText: "Soft Ticking Sound"; themeColor: root.themeColor; themeContrastColor: root.themeContrastColor }
+                }
+
+                // Divider
+                Rectangle { width: parent.width; height: 1; color: "#1b1b1b" }
+
+                // Digital Wellbeing & Security Group
+                Column {
+                    width: parent.width
+                    spacing: 14
+
+                    Text {
+                        text: "DIGITAL WELLBEING & SECURITY"
+                        color: "#666666"
+                        font.pixelSize: 11
+                        font.bold: true
+                        font.letterSpacing: 1
+                    }
+
+                    SettingToggle { 
+                        id: strictFocusToggle
+                        labelText: "Strict Focus Mode"
+                        subtitle: "Blocks distracting sites & prevents exit during work"
+                        themeColor: root.themeColor
+                        themeContrastColor: root.themeContrastColor 
+                    }
+                    SettingToggle { 
+                        id: privacyLockToggle
+                        labelText: "Privacy Screen Lock"
+                        subtitle: "Locks screen automatically when stepping into break"
+                        themeColor: root.themeColor
+                        themeContrastColor: root.themeContrastColor 
+                    }
+                    SettingToggle { 
+                        id: encryptStorageToggle
+                        labelText: "AES-256 Storage Encryption"
+                        subtitle: "Encrypts local settings on disk using AES-256-GCM"
+                        themeColor: root.themeColor
+                        themeContrastColor: root.themeContrastColor 
+                    }
                 }
 
                 // Divider

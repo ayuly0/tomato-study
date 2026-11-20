@@ -6,19 +6,31 @@ from constants import (
     DEFAULT_FLASH_ENABLED, DEFAULT_THEME_COLOR, DEFAULT_SHADER_DAMPING,
     DEFAULT_SHADER_SPEED, DEFAULT_METEOR_FREQUENCY, DEFAULT_LONG_BREAK_INTERVAL,
     DEFAULT_ALARM_VOLUME, DEFAULT_STREAM_VOLUME, DEFAULT_COMPACT_WIDTH_THRESHOLD,
-    DEFAULT_COMPACT_HEIGHT_THRESHOLD, DEFAULT_CLOCK_SCALE
+    DEFAULT_COMPACT_HEIGHT_THRESHOLD, DEFAULT_CLOCK_SCALE,
+    DEFAULT_STRICT_FOCUS_ENABLED, DEFAULT_PRIVACY_LOCK_ENABLED,
+    DEFAULT_ENCRYPT_STORAGE, DEFAULT_BLOCKED_DOMAINS
 )
+from security import DataCryptor
 
 class SettingsManager:
-    """Handles loading, defaults fallback, and saving of application settings."""
+    """Handles loading, defaults fallback, and AES-256 encrypted saving of application settings."""
     def __init__(self, config_file=CONFIG_FILE_NAME):
         self.config_file = config_file
+        self._last_saved_json = None
+        self._last_saved_encrypted = None
         
     def load(self) -> dict:
         if self.config_file and os.path.exists(self.config_file):
             try:
-                with open(self.config_file, 'r') as f:
-                    data = json.load(f)
+                with open(self.config_file, 'rb') as f:
+                    raw_bytes = f.read()
+
+                if DataCryptor.is_encrypted(raw_bytes):
+                    decrypted_text = DataCryptor.decrypt(raw_bytes)
+                    data = json.loads(decrypted_text)
+                else:
+                    data = json.loads(raw_bytes.decode('utf-8'))
+
                 return {
                     "work_minutes": int(data.get("work_minutes", DEFAULT_WORK_MINUTES)),
                     "short_break_minutes": int(data.get("short_break_minutes", DEFAULT_SHORT_BREAK_MINUTES)),
@@ -48,7 +60,11 @@ class SettingsManager:
                     "keybind_settings": str(data.get("keybind_settings", "S")),
                     "keybind_zen_mode": str(data.get("keybind_zen_mode", "Z")),
                     "keybind_stream": str(data.get("keybind_stream", "P")),
-                    "keybind_mute": str(data.get("keybind_mute", "M"))
+                    "keybind_mute": str(data.get("keybind_mute", "M")),
+                    "strict_focus_enabled": bool(data.get("strict_focus_enabled", DEFAULT_STRICT_FOCUS_ENABLED)),
+                    "privacy_lock_enabled": bool(data.get("privacy_lock_enabled", DEFAULT_PRIVACY_LOCK_ENABLED)),
+                    "encrypt_storage": bool(data.get("encrypt_storage", DEFAULT_ENCRYPT_STORAGE)),
+                    "blocked_domains": list(data.get("blocked_domains", DEFAULT_BLOCKED_DOMAINS))
                 }
             except Exception:
                 pass
@@ -83,7 +99,11 @@ class SettingsManager:
             "keybind_settings": "S",
             "keybind_zen_mode": "Z",
             "keybind_stream": "P",
-            "keybind_mute": "M"
+            "keybind_mute": "M",
+            "strict_focus_enabled": DEFAULT_STRICT_FOCUS_ENABLED,
+            "privacy_lock_enabled": DEFAULT_PRIVACY_LOCK_ENABLED,
+            "encrypt_storage": DEFAULT_ENCRYPT_STORAGE,
+            "blocked_domains": DEFAULT_BLOCKED_DOMAINS
         }
         self.save(defaults)
         return defaults
@@ -92,7 +112,24 @@ class SettingsManager:
         if not self.config_file:
             return
         try:
-            with open(self.config_file, 'w') as f:
-                json.dump(settings_dict, f, indent=2)
+            encrypt = bool(settings_dict.get("encrypt_storage", False))
+            json_text = json.dumps(settings_dict, indent=2, sort_keys=True)
+            
+            # Avoid redundant encryption / disk I/O if unchanged and file exists
+            if (self._last_saved_json == json_text and 
+                self._last_saved_encrypted == encrypt and 
+                os.path.exists(self.config_file)):
+                return
+
+            if encrypt:
+                encrypted_bytes = DataCryptor.encrypt(json_text)
+                with open(self.config_file, 'wb') as f:
+                    f.write(encrypted_bytes)
+            else:
+                with open(self.config_file, 'w', encoding='utf-8') as f:
+                    f.write(json_text)
+                    
+            self._last_saved_json = json_text
+            self._last_saved_encrypted = encrypt
         except IOError:
             pass

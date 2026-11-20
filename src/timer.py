@@ -10,6 +10,8 @@ from constants import (
 )
 from presets import PresetsManager
 from settings import SettingsManager
+from security import HostsBlocker, PrivacyLockManager
+import qtawesome as qta
 
 class TimerBackend(QObject):
     # PySide signals to communicate state changes to QML
@@ -48,6 +50,14 @@ class TimerBackend(QObject):
     keybindStreamChanged = Signal(str)
     keybindMuteChanged = Signal(str)
     
+    # Security & Wellbeing signals
+    strictFocusEnabledChanged = Signal(bool)
+    privacyLockEnabledChanged = Signal(bool)
+    encryptStorageChanged = Signal(bool)
+    blockedDomainsChanged = Signal(list)
+    strictFocusActiveChanged = Signal(bool)
+    securityAlert = Signal(str)
+    
     # Timer state signals
     timeStringChanged = Signal(str)
     progressChanged = Signal(float)
@@ -75,6 +85,12 @@ class TimerBackend(QObject):
         
         # Load configuration
         self._settings_manager = SettingsManager(self._config_file)
+        
+        # Security managers
+        self._hosts_blocker = HostsBlocker()
+        self._privacy_lock_manager = PrivacyLockManager()
+        self._strict_focus_active = False
+
         self.load_settings()
         
         # Initialize streamer
@@ -131,6 +147,10 @@ class TimerBackend(QObject):
             "streamVolume": ("_stream_volume", self.streamVolumeChanged, float),
             "activePreset": ("_active_preset", self.activePresetChanged, str),
             "timerMode": ("_timer_mode", self.timerModeChanged, str),
+            "strictFocusEnabled": ("_strict_focus_enabled", self.strictFocusEnabledChanged, bool),
+            "privacyLockEnabled": ("_privacy_lock_enabled", self.privacyLockEnabledChanged, bool),
+            "encryptStorage": ("_encrypt_storage", self.encryptStorageChanged, bool),
+            "blockedDomains": ("_blocked_domains", self.blockedDomainsChanged, list),
         }
 
     def set_view(self, view):
@@ -185,6 +205,12 @@ class TimerBackend(QObject):
         self._keybind_zen_mode = settings["keybind_zen_mode"]
         self._keybind_stream = settings["keybind_stream"]
         self._keybind_mute = settings["keybind_mute"]
+        
+        # Security configs
+        self._strict_focus_enabled = settings.get("strict_focus_enabled", False)
+        self._privacy_lock_enabled = settings.get("privacy_lock_enabled", False)
+        self._encrypt_storage = settings.get("encrypt_storage", False)
+        self._blocked_domains = settings.get("blocked_domains", [])
 
     def save_settings_to_file(self):
         data = {
@@ -216,7 +242,11 @@ class TimerBackend(QObject):
             "keybind_settings": self._keybind_settings,
             "keybind_zen_mode": self._keybind_zen_mode,
             "keybind_stream": self._keybind_stream,
-            "keybind_mute": self._keybind_mute
+            "keybind_mute": self._keybind_mute,
+            "strict_focus_enabled": self._strict_focus_enabled,
+            "privacy_lock_enabled": self._privacy_lock_enabled,
+            "encrypt_storage": self._encrypt_storage,
+            "blocked_domains": self._blocked_domains
         }
         self._settings_manager.save(data)
 
@@ -290,11 +320,43 @@ class TimerBackend(QObject):
                 self._seconds_remaining = remaining
                 self.update_time_string()
 
+    def _activate_strict_focus(self):
+        if self._strict_focus_enabled and not self._strict_focus_active:
+            success = self._hosts_blocker.block_domains(self._blocked_domains)
+            self._strict_focus_active = True
+            self.strictFocusActiveChanged.emit(True)
+            if not success:
+                self.securityAlert.emit("Strict Focus: Note - Admin/root privileges required for hosts blocking.")
+
+    def _deactivate_strict_focus(self):
+        if self._strict_focus_active:
+            self._hosts_blocker.unblock_all()
+            self._strict_focus_active = False
+            self.strictFocusActiveChanged.emit(False)
+
+    def _trigger_privacy_lock(self):
+        if self._privacy_lock_enabled:
+            self._privacy_lock_manager.lock_screen()
+
+    def can_close(self) -> bool:
+        if self._strict_focus_enabled and self._is_running and self._current_state == "work":
+            self.securityAlert.emit("Strict Focus is active! Finish your focus session before quitting.")
+            return False
+        return True
+
+    @Slot(result=bool)
+    def canClose(self):
+        return self.can_close()
+
     def _on_timer_complete(self):
         self._is_running = False
         self.isRunningChanged.emit(False)
         self._timer.stop()
         
+        # End strict focus if completing work
+        if self._current_state == "work":
+            self._deactivate_strict_focus()
+
         if self._sound_enabled and self._sound_effect:
             self._sound_effect.play()
         if self._flash_enabled:
@@ -311,6 +373,7 @@ class TimerBackend(QObject):
             else:
                 self._current_state = "short_break"
                 self._total_seconds_to_run = self._short_break_minutes * SECONDS_IN_MINUTE
+            self._trigger_privacy_lock()
         else:
             self._current_state = "work"
             if self._timer_mode == "flowtime":
@@ -343,6 +406,8 @@ class TimerBackend(QObject):
             return
         self._is_running = True
         self.isRunningChanged.emit(True)
+        if self._current_state == "work":
+            self._activate_strict_focus()
         if self._timer_mode == "flowtime" and self._current_state == "work":
             self._target_end_monotonic = time.monotonic() - self._seconds_remaining
         else:
@@ -356,6 +421,7 @@ class TimerBackend(QObject):
         self._is_running = False
         self.isRunningChanged.emit(False)
         self._timer.stop()
+        self._deactivate_strict_focus()
         if self._timer_mode == "flowtime" and self._current_state == "work":
             self._seconds_remaining = time.monotonic() - self._target_end_monotonic
         else:
@@ -367,6 +433,7 @@ class TimerBackend(QObject):
         self._is_running = False
         self.isRunningChanged.emit(False)
         self._timer.stop()
+        self._deactivate_strict_focus()
         
         if self._current_state == "work":
             if self._timer_mode == "flowtime":
@@ -400,6 +467,7 @@ class TimerBackend(QObject):
         self._is_running = False
         self.isRunningChanged.emit(False)
         self._timer.stop()
+        self._deactivate_strict_focus()
         
         elapsed_seconds = self._seconds_remaining
         elapsed_minutes = elapsed_seconds / 60.0
@@ -427,6 +495,7 @@ class TimerBackend(QObject):
         
         self.currentStateChanged.emit(self._current_state)
         self.update_time_string()
+        self._trigger_privacy_lock()
         self.start()
 
     @Slot()
@@ -436,6 +505,7 @@ class TimerBackend(QObject):
         self._timer.stop()
         
         if self._current_state == "work":
+            self._deactivate_strict_focus()
             if self._timer_mode == "flowtime":
                 self.stopFlowtimeAndStartBreak()
                 return
@@ -448,6 +518,7 @@ class TimerBackend(QObject):
                 else:
                     self._current_state = "short_break"
                     self._total_seconds_to_run = self._short_break_minutes * SECONDS_IN_MINUTE
+                self._trigger_privacy_lock()
         else:
             self._current_state = "work"
             if self._timer_mode == "flowtime":
@@ -479,6 +550,7 @@ class TimerBackend(QObject):
         self._is_running = False
         self.isRunningChanged.emit(False)
         self._timer.stop()
+        self._deactivate_strict_focus()
         
         self._current_state = "work"
         self._work_count = 0
@@ -597,6 +669,7 @@ class TimerBackend(QObject):
             self.songTitleChanged.emit(title)
 
     def cleanup(self):
+        self._deactivate_strict_focus()
         self._streamer.stop()
 
     # Qt Properties exposed to QML Engine
@@ -725,3 +798,35 @@ class TimerBackend(QObject):
 
     @Property(str, notify=keybindMuteChanged)
     def keybindMute(self): return self._keybind_mute
+
+    @Property(bool, notify=strictFocusEnabledChanged)
+    def strictFocusEnabled(self): return self._strict_focus_enabled
+
+    @Property(bool, notify=privacyLockEnabledChanged)
+    def privacyLockEnabled(self): return self._privacy_lock_enabled
+
+    @Property(bool, notify=encryptStorageChanged)
+    def encryptStorage(self): return self._encrypt_storage
+
+    @Property(list, notify=blockedDomainsChanged)
+    def blockedDomains(self): return self._blocked_domains
+
+    @Property(bool, notify=strictFocusActiveChanged)
+    def strictFocusActive(self): return self._strict_focus_active
+
+    @Property(str, constant=True)
+    def iconFontFamily(self):
+        try:
+            return qta.font("fa6s", 16).family()
+        except Exception:
+            return "Font Awesome 6 Free Solid"
+
+    @Slot(str, result=str)
+    def icon(self, name: str) -> str:
+        try:
+            clean_name = name.strip()
+            if not clean_name.startswith("fa6s."):
+                clean_name = f"fa6s.{clean_name}"
+            return qta.charmap(clean_name)
+        except Exception:
+            return ""

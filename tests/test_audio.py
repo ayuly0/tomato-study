@@ -11,12 +11,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 
 from audio import LateAudioStreamer, LocalStreamProxy
 
-@pytest.fixture(scope="session", autouse=True)
-def q_app():
-    app = QCoreApplication.instance()
-    if app is None:
-        app = QCoreApplication(sys.argv)
-    yield app
 
 def test_streamer_stops_on_error():
     streamer = LateAudioStreamer()

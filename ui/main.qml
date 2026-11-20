@@ -110,6 +110,7 @@ Item {
         clockTheme: timerBackend.clockTheme
         timeString: timerBackend.timeString
         clockScale: timerBackend.clockScale
+        strictFocusActive: timerBackend.strictFocusActive
     }
 
     ControlBar {
@@ -242,6 +243,9 @@ Item {
             keybindZenMode: timerBackend.keybindZenMode,
             keybindStream: timerBackend.keybindStream,
             keybindMute: timerBackend.keybindMute,
+            strictFocusEnabled: timerBackend.strictFocusEnabled,
+            privacyLockEnabled: timerBackend.privacyLockEnabled,
+            encryptStorage: timerBackend.encryptStorage,
             compactWidthThreshold: timerBackend.compactWidthThreshold,
             compactHeightThreshold: timerBackend.compactHeightThreshold,
             clockScale: timerBackend.clockScale
@@ -286,6 +290,57 @@ Item {
         function trigger() {
             zenNotification.opacity = 0.85;
             zenNotificationTimer.restart();
+        }
+    }
+
+    // Security Alert Toast Overlay
+    Rectangle {
+        id: securityToast
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: Math.max(15, parent.height * 0.05)
+        width: Math.min(parent.width - 40, securityToastText.implicitWidth + 30)
+        height: 32
+        color: "#221111"
+        border.color: "#ff4d4d"
+        border.width: 1
+        radius: 16
+        opacity: 0.0
+        visible: opacity > 0.0
+        z: 999
+        
+        Text {
+            id: securityToastText
+            text: ""
+            color: "#ffcccc"
+            font.pixelSize: 11
+            font.bold: true
+            anchors.centerIn: parent
+            elide: Text.ElideRight
+            maximumLineCount: 1
+        }
+        
+        Behavior on opacity { NumberAnimation { duration: 150 } }
+        
+        Timer {
+            id: securityToastTimer
+            interval: 3000
+            running: false
+            repeat: false
+            onTriggered: securityToast.opacity = 0.0
+        }
+        
+        function showMessage(msg) {
+            securityToastText.text = msg;
+            securityToast.opacity = 0.95;
+            securityToastTimer.restart();
+        }
+    }
+
+    Connections {
+        target: timerBackend
+        function onSecurityAlert(msg) {
+            securityToast.showMessage(msg);
         }
     }
 

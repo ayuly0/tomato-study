@@ -10,10 +10,22 @@ os.environ["QSG_RHI_BACKEND"] = "opengl"
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SRC_DIR)
 
-from PySide6.QtCore import QUrl
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtCore import QUrl, QEvent
+from PySide6.QtGui import QGuiApplication, QCloseEvent
 from PySide6.QtQuick import QQuickView
 from timer import TimerBackend, UI_DIR
+
+class FocusQuickView(QQuickView):
+    """Custom QQuickView supporting anti-exit protection during Strict Focus."""
+    def __init__(self, backend, parent=None):
+        super().__init__(parent)
+        self._backend = backend
+
+    def closeEvent(self, event: QCloseEvent):
+        if self._backend and not self._backend.can_close():
+            event.ignore()
+            return
+        super().closeEvent(event)
 
 def compile_shader():
     """Compiles the GLSL fragment shader to QSB package if qsb compiler is available."""
@@ -66,12 +78,16 @@ def main():
     app.setApplicationName("Tomato Study")
     app.setOrganizationName("TomatoStudy")
     
+    # Pre-load QtAwesome Font Awesome 6 font family into QFontDatabase
+    import qtawesome as qta
+    qta.font("fa6s", 16)
+    
     backend = TimerBackend()
     
     # Register clean shutdown slot
     app.aboutToQuit.connect(backend.cleanup)
     
-    view = QQuickView()
+    view = FocusQuickView(backend)
     view.setTitle("Tomato Study")
     
     # Associate backend to adjust stays-on-top flags

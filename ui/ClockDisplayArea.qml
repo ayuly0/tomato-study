@@ -20,6 +20,7 @@ Item {
     property int longBreakInterval: 4
     property string clockTheme: "digital"
     property string timeString: "00:00"
+    property bool strictFocusActive: false
 
     // Status header
     Text {
@@ -75,6 +76,45 @@ Item {
         font.letterSpacing: 2
         color: root.currentState === "work" ? root.themeColor : root.stateBreakColor
         opacity: root.isCompactMode && !root.isHovered ? 0.0 : statusText.opacity * 0.8
+    }
+
+    // Strict Focus Active Badge
+    Rectangle {
+        id: strictBadge
+        anchors.top: sessionText.bottom
+        anchors.topMargin: 6
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: strictBadgeRow.width + 16
+        height: 18
+        radius: 9
+        color: "#1a0808"
+        border.color: root.themeColor
+        border.width: 1
+        visible: opacity > 0.0
+        opacity: (root.strictFocusActive && !root.zenMode && (root.isHovered || !root.isRunning || statusText.opacity > 0.1)) ? 0.9 : 0.0
+
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+
+        Row {
+            id: strictBadgeRow
+            anchors.centerIn: parent
+            spacing: 5
+            Text {
+                text: timerBackend.icon("lock")
+                font.family: timerBackend.iconFontFamily
+                font.pixelSize: 8
+                color: root.themeColor
+                anchors.verticalCenter: parent.verticalCenter
+            }
+            Text {
+                text: "STRICT FOCUS ACTIVE"
+                color: root.themeColor
+                font.pixelSize: 8
+                font.bold: true
+                font.letterSpacing: 1
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
     }
 
     // 2.5D Split-Card Flip Clock Display
