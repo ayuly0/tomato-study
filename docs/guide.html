@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomato Study — User Guide | Interface, Settings & Shortcuts</title>
+  <meta name="description" content="Complete user guide for Tomato Study: main interface tour, settings drawer configuration, and keyboard shortcut rebinding.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="site-container header-row">
+      <a href="index.html" class="brand-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28" style="width:28px;height:28px;flex-shrink:0" aria-hidden="true">
+          <defs>
+            <radialGradient id="headerTomatoGrad" cx="38%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#ff6b6b"/>
+              <stop offset="50%" stop-color="#e03131"/>
+              <stop offset="100%" stop-color="#991414"/>
+            </radialGradient>
+          </defs>
+          <path d="M50,92 C22,92 10,74 10,54 C10,36 24,28 38,28 C44,28 48,31 50,33 C52,31 56,28 62,28 C76,28 90,36 90,54 C90,74 78,92 50,92 Z" fill="url(#headerTomatoGrad)"/>
+          <ellipse cx="34" cy="42" rx="14" ry="7" transform="rotate(-25 34 42)" fill="#ffffff" opacity="0.35"/>
+          <path d="M49,30 C49,18 45,10 52,7 C53,7 54,12 52,28 Z" fill="#2f9e44"/>
+          <circle cx="50" cy="30" r="3.5" fill="#237032"/>
+        </svg>
+        <span>Tomato Study</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html">Install</a>
+        <a href="guide.html" class="active">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">Our Project</a>
+        <a href="faq.html">FAQ</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+
+      <div>
+        <a href="https://github.com/ayuly/tomato-study" target="_blank" rel="noopener noreferrer" class="btn-github">
+          <svg width="16" height="16" style="width:16px;height:16px;flex-shrink:0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Introduction -->
+  <section class="section" style="padding-bottom:2.5rem">
+    <div class="site-container">
+      <div style="max-width:44rem">
+        <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem">Interface Documentation</div>
+        <h1 class="section-title" style="font-size:2.5rem">Tomato Study User Guide</h1>
+        <p class="section-desc">
+          A visual walk-through of the main application window, the comprehensive Settings panel, and keyboard-first shortcuts.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: Main Screen Tour -->
+  <section class="section" style="padding-top:0">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">1. Main Interface Walkthrough</h2>
+        <p class="section-desc">The primary viewport is split into three functional layers designed for zero visual noise.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-tag">Layer 1</div>
+          <h3 class="card-title">Status Header</h3>
+          <p class="card-text">
+            Displays the current cycle state (<code>FOCUS WORK</code> in ruby accent, <code>SHORT BREAK</code>, or <code>LONG BREAK</code>) along with current session tracking (e.g. <code>SESSION 1 OF 4</code>). In Flowtime, indicates current deep work state.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-tag">Layer 2</div>
+          <h3 class="card-title">Clock Display Area</h3>
+          <p class="card-text">
+            Renders either the signature split-flap 2.5D flip cards or clean digital typography. Shows minutes and seconds with automatic 3-digit hour overflow support for extended Flowtime blocks.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-tag">Layer 3</div>
+          <h3 class="card-title">Floating Control Bar</h3>
+          <p class="card-text">
+            Auto-dimming controls: Start/Pause button, Reset button, Take Break button (active in Flowtime), Settings cog, and expandable lo-fi volume slider with mute toggle. Automatically fades during active focus.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Settings Panel Tour -->
+  <section class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">2. Settings Drawer Configuration</h2>
+        <p class="section-desc">Press S or click the gear button to slide open the configuration drawer.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="card-title">Preset & Duration Controls</h3>
+          <ul style="list-style:none;font-size:0.875rem;color:var(--text-secondary);line-height:1.75;margin-top:0.75rem">
+            <li><strong>Preset Dropdown:</strong> Select Pomodoro, Flowtime, 50/10 Focus, or Custom.</li>
+            <li><strong>Durations:</strong> Set custom Work Duration (min), Short Break (min), and Long Break (min).</li>
+            <li><strong>Long Break Interval:</strong> Choose how many cycles elapse before a long restorative break (default: 4).</li>
+            <li><strong>Auto-Start Options:</strong> Check Auto-Start Breaks and Auto-Start Work to run continuously without manual clicks.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Visual & Audio Customization</h3>
+          <ul style="list-style:none;font-size:0.875rem;color:var(--text-secondary);line-height:1.75;margin-top:0.75rem">
+            <li><strong>Clock Theme:</strong> Toggle between mechanical Flip cards and minimal Digital font.</li>
+            <li><strong>Accent Palette:</strong> Choose Ruby Red (#ff4d4d), Emerald (#2ecc71), Sky Blue (#3498db), Gold (#f1c40f), or Crisp White.</li>
+            <li><strong>GPU Shaders:</strong> Adjust mouse trail delay, star drift speed, and meteor frequency.</li>
+            <li><strong>Sound Options:</strong> Alarm volume slider, soft ticking sound toggle, and late.sh radio volume.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1.5rem">
+        <div class="card-tag">Digital Wellbeing & Security Settings</div>
+        <h3 class="card-title">Endpoint & Privacy Controls</h3>
+        <p class="card-text">
+          Inside the Wellbeing section of the Settings drawer, toggle <strong>Strict Focus Mode</strong> to block social distractions and lock window exits, <strong>Privacy Screen Lock</strong> to lock your workstation when stepping into break, and <strong>AES-256 Storage Encryption</strong> to protect your configuration files on disk.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Keyboard Shortcuts & Rebinding -->
+  <section id="shortcuts" class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">3. Keyboard Shortcuts & Rebinding Guide</h2>
+        <p class="section-desc">Control your focus timer entirely from the keyboard without breaking hand posture.</p>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:2rem">
+        <table class="table-shortcuts">
+          <thead>
+            <tr>
+              <th>Default Key</th>
+              <th>Action</th>
+              <th>How to Rebind</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="keycap">Space</span></td>
+              <td style="font-weight:600;color:#ffffff">Start / Pause Timer</td>
+              <td style="color:var(--text-secondary)">Click the keybind row in Settings, press any desired key, and save.</td>
+            </tr>
+            <tr>
+              <td><span class="keycap">R</span></td>
+              <td style="font-weight:600;color:#ffffff">Reset Current Cycle</td>
+              <td style="color:var(--text-secondary)">Settings &gt; Keybinds &gt; Reset Key</td>
+            </tr>
+            <tr>
+              <td><span class="keycap">S</span></td>
+              <td style="font-weight:600;color:#ffffff">Toggle Settings Panel</td>
+              <td style="color:var(--text-secondary)">Settings &gt; Keybinds &gt; Settings Key</td>
+            </tr>
+            <tr>
+              <td><span class="keycap">Z</span></td>
+              <td style="font-weight:600;color:#ffffff">Toggle Zen Mode</td>
+              <td style="color:var(--text-secondary)">Settings &gt; Keybinds &gt; Zen Mode Key (or double-click background)</td>
+            </tr>
+            <tr>
+              <td><span class="keycap">P</span></td>
+              <td style="font-weight:600;color:#ffffff">Toggle Lo-Fi Stream</td>
+              <td style="color:var(--text-secondary)">Settings &gt; Keybinds &gt; Stream Key</td>
+            </tr>
+            <tr>
+              <td><span class="keycap">M</span></td>
+              <td style="font-weight:600;color:#ffffff">Mute / Unmute Audio</td>
+              <td style="color:var(--text-secondary)">Settings &gt; Keybinds &gt; Mute Key</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">Pro Tip</div>
+        <h3 class="card-title">How Rebinding Works in Settings</h3>
+        <p class="card-text">
+          Open Settings with <span class="keycap">S</span>, scroll down to <strong>KEYBOARD SHORTCUTS</strong>, click on the key button you wish to alter (it will highlight in red), press any key on your keyboard, and click <strong>SAVE & APPLY</strong> at the bottom. Your bindings are saved to encrypted local configuration and take effect immediately.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="site-container">
+      <nav class="footer-nav" aria-label="Footer Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html">Install</a>
+        <a href="guide.html">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">Our Project</a>
+        <a href="faq.html">FAQ</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+
+      <div class="footer-row">
+        <div>
+          <strong style="color:#ffffff">Tomato Study</strong> — Course Project for Introduction to the Major and Soft Skills (2026–2027)
+        </div>
+        <div style="color:var(--text-muted)">
+          Page Lead: Member 2 (UI/UX Architecture & User Guide)
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

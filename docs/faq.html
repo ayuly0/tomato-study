@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomato Study — FAQ | 10 Frequently Asked Questions</title>
+  <meta name="description" content="Frequently asked questions about Tomato Study: licensing, Pomodoro vs Flowtime, offline mode, Strict Focus, privacy screen lock, and troubleshooting.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="site-container header-row">
+      <a href="index.html" class="brand-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28" style="width:28px;height:28px;flex-shrink:0" aria-hidden="true">
+          <defs>
+            <radialGradient id="headerTomatoGrad" cx="38%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#ff6b6b"/>
+              <stop offset="50%" stop-color="#e03131"/>
+              <stop offset="100%" stop-color="#991414"/>
+            </radialGradient>
+          </defs>
+          <path d="M50,92 C22,92 10,74 10,54 C10,36 24,28 38,28 C44,28 48,31 50,33 C52,31 56,28 62,28 C76,28 90,36 90,54 C90,74 78,92 50,92 Z" fill="url(#headerTomatoGrad)"/>
+          <ellipse cx="34" cy="42" rx="14" ry="7" transform="rotate(-25 34 42)" fill="#ffffff" opacity="0.35"/>
+          <path d="M49,30 C49,18 45,10 52,7 C53,7 54,12 52,28 Z" fill="#2f9e44"/>
+          <circle cx="50" cy="30" r="3.5" fill="#237032"/>
+        </svg>
+        <span>Tomato Study</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html">Install</a>
+        <a href="guide.html">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">Our Project</a>
+        <a href="faq.html" class="active">FAQ</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+
+      <div>
+        <a href="https://github.com/ayuly/tomato-study" target="_blank" rel="noopener noreferrer" class="btn-github">
+          <svg width="16" height="16" style="width:16px;height:16px;flex-shrink:0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Introduction -->
+  <section class="section" style="padding-bottom:2.5rem">
+    <div class="site-container">
+      <div style="max-width:44rem">
+        <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem">Knowledge Base</div>
+        <h1 class="section-title" style="font-size:2.5rem">Frequently Asked Questions</h1>
+        <p class="section-desc">
+          Answers to the 10 most common questions regarding Tomato Study features, privacy, study methodologies, and troubleshooting.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Accordion List -->
+  <section class="section" style="padding-top:0">
+    <div class="site-container">
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+
+        <!-- FAQ 1 -->
+        <details class="faq-item" open>
+          <summary class="faq-question">1. Is Tomato Study completely free and open source?</summary>
+          <div class="faq-answer">
+            Yes. Tomato Study is 100% free and open-source software licensed under the permissive MIT License. There are no subscriptions, no in-app advertisements, no telemetry, and no paid tiers. The full source code is publicly accessible on GitHub.
+          </div>
+        </details>
+
+        <!-- FAQ 2 -->
+        <details class="faq-item">
+          <summary class="faq-question">2. How does Flowtime differ from the classic Pomodoro Technique?</summary>
+          <div class="faq-answer">
+            Traditional Pomodoro enforces strict countdown cycles (typically 25 minutes of work followed by 5 minutes of rest). In contrast, Flowtime counts upward from 00:00 without arbitrary cutoff bells. You work until you hit a natural pause, and Tomato Study automatically calculates a restorative break length proportional to your focus time (e.g., 5m break for &lt;25m work, 8m for 25–50m, 10m for 50–90m, 20m for 90m+).
+          </div>
+        </details>
+
+        <!-- FAQ 3 -->
+        <details class="faq-item">
+          <summary class="faq-question">3. Does the application work offline without an Internet connection?</summary>
+          <div class="faq-answer">
+            Yes. The core application — including both the Pomodoro and Flowtime timer engines, flip and digital clocks, OpenGL procedural shaders, and Strict Focus endpoint controls — operates completely offline. An internet connection is only needed if you choose to listen to the live background lo-fi radio from late.sh.
+          </div>
+        </details>
+
+        <!-- FAQ 4 -->
+        <details class="faq-item">
+          <summary class="faq-question">4. How does Strict Focus mode work, and is it safe for my computer?</summary>
+          <div class="faq-answer">
+            Strict Focus mode temporarily blocks distracting domains (such as Facebook, YouTube, TikTok, Reddit, and X) by adding localhost loopback entries into your operating system's <code>hosts</code> file, bounded by clear marker comments (<code># --- START TOMATO STUDY STRICT FOCUS ---</code>). When the session completes, pauses, or resets, the entries are cleanly removed and original hosts contents restored. It makes no permanent registry or network driver changes.
+          </div>
+        </details>
+
+        <!-- FAQ 5 -->
+        <details class="faq-item">
+          <summary class="faq-question">5. Will Privacy Screen Lock close the app or lose my timer state?</summary>
+          <div class="faq-answer">
+            No. Privacy Screen Lock calls the native operating system workstation lock mechanism (equivalent to pressing <code>Win + L</code> on Windows, <code>loginctl lock-session</code> on Linux, or <code>pmset displaysleepnow</code> on macOS). Tomato Study remains running quietly in the background and preserves all session progress while you step away.
+          </div>
+        </details>
+
+        <!-- FAQ 6 -->
+        <details class="faq-item">
+          <summary class="faq-question">6. What encryption algorithm protects my settings and study history?</summary>
+          <div class="faq-answer">
+            When AES-256 Storage Encryption is enabled in Settings, the application encrypts your configuration file on disk using authenticated AES-256-GCM (Galois/Counter Mode). The 256-bit encryption key is derived securely via PBKDF2HMAC with SHA-256 and 100,000 hash iterations bound to your machine identifier.
+          </div>
+        </details>
+
+        <!-- FAQ 7 -->
+        <details class="faq-item">
+          <summary class="faq-question">7. How do I activate Zen Mode?</summary>
+          <div class="faq-answer">
+            You can enter Zen Mode instantly at any time by pressing <span class="keycap">Z</span> on your keyboard or by double-clicking the background of the main timer window. In Zen Mode, all borders, control buttons, and mouse cursors are hidden, leaving only the glowing clock digits and celestial starfield.
+          </div>
+        </details>
+
+        <!-- FAQ 8 -->
+        <details class="faq-item">
+          <summary class="faq-question">8. Can I customize study intervals and break lengths?</summary>
+          <div class="faq-answer">
+            Yes. Open the Settings drawer (<span class="keycap">S</span>) to customize work durations anywhere from 1 to 180 minutes, short breaks from 1 to 60 minutes, long breaks from 1 to 90 minutes, and choose how many work cycles trigger a long break. You can also configure auto-start preferences so breaks and work sessions roll seamlessly.
+          </div>
+        </details>
+
+        <!-- FAQ 9 -->
+        <details class="faq-item">
+          <summary class="faq-question">9. Can I rebind the keyboard shortcuts to my own preferred keys?</summary>
+          <div class="faq-answer">
+            Yes. In the Settings drawer under KEYBOARD SHORTCUTS, click on any keybinding button, press your desired replacement key on your physical keyboard, and click <strong>SAVE & APPLY</strong>. Changes are validated and stored immediately.
+          </div>
+        </details>
+
+        <!-- FAQ 10 -->
+        <details class="faq-item">
+          <summary class="faq-question">10. What should I do if I see an elevated permissions notice when enabling Strict Focus?</summary>
+          <div class="faq-answer">
+            Modifying the system <code>hosts</code> file is an administrative action protected by operating system security policies. On Windows, right-click the launcher or shortcut and select <strong>Run as Administrator</strong>. On Linux or macOS, run the launcher with appropriate permissions (e.g. <code>sudo ./run.sh</code>). If run without administrative privileges, Tomato Study displays an informative in-app notice and continues functioning normally without crashing.
+          </div>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="site-container">
+      <nav class="footer-nav" aria-label="Footer Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html">Install</a>
+        <a href="guide.html">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">Our Project</a>
+        <a href="faq.html">FAQ</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+
+      <div class="footer-row">
+        <div>
+          <strong style="color:#ffffff">Tomato Study</strong> — Course Project for Introduction to the Major and Soft Skills (2026–2027)
+        </div>
+        <div style="color:var(--text-muted)">
+          Page Lead: Member 3 (Implementation & Technical FAQ)
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomato Study — Our Project | Story, Team & Engineering Workflow</title>
+  <meta name="description" content="The story behind Tomato Study: engineering workflow with Claude and Gemini, technology stack, testing evaluation, team roster, and future roadmap.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="site-container header-row">
+      <a href="index.html" class="brand-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28" style="width:28px;height:28px;flex-shrink:0" aria-hidden="true">
+          <defs>
+            <radialGradient id="headerTomatoGrad" cx="38%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#ff6b6b"/>
+              <stop offset="50%" stop-color="#e03131"/>
+              <stop offset="100%" stop-color="#991414"/>
+            </radialGradient>
+          </defs>
+          <path d="M50,92 C22,92 10,74 10,54 C10,36 24,28 38,28 C44,28 48,31 50,33 C52,31 56,28 62,28 C76,28 90,36 90,54 C90,74 78,92 50,92 Z" fill="url(#headerTomatoGrad)"/>
+          <ellipse cx="34" cy="42" rx="14" ry="7" transform="rotate(-25 34 42)" fill="#ffffff" opacity="0.35"/>
+          <path d="M49,30 C49,18 45,10 52,7 C53,7 54,12 52,28 Z" fill="#2f9e44"/>
+          <circle cx="50" cy="30" r="3.5" fill="#237032"/>
+        </svg>
+        <span>Tomato Study</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html">Install</a>
+        <a href="guide.html">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html" class="active">Our Project</a>
+        <a href="faq.html">FAQ</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+
+      <div>
+        <a href="https://github.com/ayuly/tomato-study" target="_blank" rel="noopener noreferrer" class="btn-github">
+          <svg width="16" height="16" style="width:16px;height:16px;flex-shrink:0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Introduction -->
+  <section class="section" style="padding-bottom:2.5rem">
+    <div class="site-container">
+      <div style="max-width:44rem">
+        <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem">Project Defense & Background</div>
+        <h1 class="section-title" style="font-size:2.5rem">About Tomato Study</h1>
+        <p class="section-desc">
+          Created as a capstone project for <em>Introduction to the Major and Soft Skills (Semester 1, 2026–2027)</em>. Built through modern AI-assisted vibe coding, rigorous unit testing, and agile team collaboration.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: The Origin Story -->
+  <section class="section" style="padding-top:0">
+    <div class="site-container">
+      <div style="margin-bottom:2rem">
+        <h2 class="section-title">1. The Origin Story</h2>
+      </div>
+
+      <div class="card">
+        <p class="card-text" style="font-size:0.9375rem;line-height:1.75">
+          Tomato Study originated from our real daily struggles as university students. Sitting down to write code or study algorithms, we repeatedly found our concentration derailed after 10 to 15 minutes by notification fatigue, social media pings, and browser tab overload. Existing focus timer tools were either bloated Electron applications consuming hundreds of megabytes of RAM, locked behind paywalls, or visually jarring.
+        </p>
+        <p class="card-text" style="font-size:0.9375rem;line-height:1.75;margin-top:1rem">
+          We set out to create a dedicated, beautiful, lightweight native desktop companion that treats attention with respect: zero advertisements, offline capabilities, calm aesthetics, and system-level endpoint controls that prevent bypassing study goals.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Engineering Workflow & AI Collaboration -->
+  <section class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">2. Engineering Workflow & AI Collaboration</h2>
+        <p class="section-desc">How our 5-member team leveraged AI tools across every stage of the software lifecycle.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-tag">Rapid Prototyping</div>
+          <h3 class="card-title">Vibe Coding with Claude</h3>
+          <p class="card-text">
+            Used Claude for generative UI wireframing and QML component synthesis. Claude accelerated building the 2.5D split-card FlipDigit cards, keybind listeners, and reactive QML property bindings in hours rather than weeks.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-tag">Error Diagnostics</div>
+          <h3 class="card-title">Systematic Diagnostics with Gemini</h3>
+          <p class="card-text">
+            Employed Gemini for deep debugging and error root-causing: configuring Qt6 RHI OpenGL shader compilation flags, resolving PySide6 background audio threading reconnects, and architecting the AES-256 test matrix.
+          </p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1.5rem">
+        <h3 class="card-title">Git & Continuous Quality Assurance</h3>
+        <p class="card-text">
+          Our engineering lifecycle followed disciplined agile principles: feature branching, peer pull-request reviews on GitHub, and automated unit test execution with PyTest before every major merge.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Technology Stack -->
+  <section class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">3. Production Technology Stack</h2>
+        <p class="section-desc">Selected for native speed, low resource consumption, and cross-platform reliability.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3 class="card-title">PySide6 & Qt Quick</h3>
+          <p class="card-text">
+            Official Python bindings for Qt 6. Declarative QML provides butter-smooth 60 FPS animations with negligible CPU usage compared to Electron.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">GLSL Fragment Shaders</h3>
+          <p class="card-text">
+            Hardware-accelerated OpenGL fragment shaders compiled to Qt binary packages (QSB), rendering stars and reactive mouse trails entirely on the GPU.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Astral uv & Packaging</h3>
+          <p class="card-text">
+            Blazing-fast Python package resolver and virtual environment manager, powering our one-click cross-platform setup scripts.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">late.sh Audio Stream</h3>
+          <p class="card-text">
+            Local TCP proxy server stripping ICY metadata and forwarding live curated lo-fi study radio beats directly into QMediaPlayer.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Cryptography (AES-256)</h3>
+          <p class="card-text">
+            Authenticated AES-256-GCM encryption with PBKDF2HMAC key derivation, protecting local settings and study history at rest.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">QtAwesome (Font Awesome 6)</h3>
+          <p class="card-text">
+            Direct vector font icon rendering inside QQuickView, replacing all emojis with clean, scalable, platform-native glyphs.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Testing & Limitations -->
+  <section class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">4. Testing Analysis, Limitations & Roadmap</h2>
+        <p class="section-desc">Honest engineering evaluation based on classmate testing and code reviews.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-tag">Proven Feasibility</div>
+          <h3 class="card-title">Quality Assurance & Feasibility</h3>
+          <p class="card-text">
+            Validated by <strong>36 automated unit tests</strong> across timer transitions, monotonic drift resilience, HostsBlocker injection/removal, AES-256 roundtrip/tamper checks, and offscreen QML compilation. Bandit SAST scans report 0 security vulnerabilities.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-tag">Current Limitations</div>
+          <h3 class="card-title">Identified Limitations</h3>
+          <p class="card-text">
+            The background audio currently streams from late.sh, requiring an internet connection for music playback. Individual local MP3 audio files cannot yet be queued. Testing was concentrated primarily on Linux and Windows.
+          </p>
+        </div>
+      </div>
+
+      <!-- Roadmap Proposals -->
+      <div class="card" style="margin-top:1.5rem">
+        <div class="card-tag">Future Roadmap</div>
+        <h3 class="card-title">Planned Improvement Proposals</h3>
+        <div class="grid-3" style="margin-top:1rem">
+          <div>
+            <strong style="color:#ffffff;font-size:0.875rem">Phase 1: Local Audio Engine</strong>
+            <p class="card-text" style="font-size:0.8125rem;margin-top:0.25rem">Support local audio files (.mp3, .flac) and ambient noise generators (rainfall, cafe white noise).</p>
+          </div>
+          <div>
+            <strong style="color:#ffffff;font-size:0.875rem">Phase 2: Expanded Packaging</strong>
+            <p class="card-text" style="font-size:0.8125rem;margin-top:0.25rem">Signed macOS DMG installer, Homebrew formula, and Linux Flatpak publishing.</p>
+          </div>
+          <div>
+            <strong style="color:#ffffff;font-size:0.875rem">Phase 3: Study Analytics</strong>
+            <p class="card-text" style="font-size:0.8125rem;margin-top:0.25rem">Local focus time analytics dashboard, habit streak charts, and calendar export.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Team Roster -->
+  <section class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">5. Team Roster & Responsibilities</h2>
+        <p class="section-desc">Course: Introduction to the Major and Soft Skills (Semester 1, 2026–2027) · Supervisor: [GVHD]</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="member-card">
+          <div class="member-name">Member 1</div>
+          <div class="member-role">Project Overview & Product Presentation</div>
+          <p class="member-desc">Problem framing, student focus research, slide deck structure, and Features & Home website modules.</p>
+        </div>
+
+        <div class="member-card">
+          <div class="member-name">Member 2</div>
+          <div class="member-role">Methodology & UI/UX Architecture</div>
+          <p class="member-desc">Pomodoro vs Flowtime study protocols, QML interface design, user guide documentation, and color themes.</p>
+        </div>
+
+        <div class="member-card">
+          <div class="member-name">Member 3</div>
+          <div class="member-role">Implementation & Production Engineer</div>
+          <p class="member-desc">Python backend state machine, late.sh TCP streaming proxy, cross-platform installers (bat/sh), and FAQ.</p>
+        </div>
+
+        <div class="member-card">
+          <div class="member-name">Member 4</div>
+          <div class="member-role">QA, Security & Evaluation Lead</div>
+          <p class="member-desc">Strict Focus endpoint blocker, AES-256 encryption, pytest suite, classmate feedback evaluation, and Project About page.</p>
+        </div>
+
+        <div class="member-card">
+          <div class="member-name">Member 5</div>
+          <div class="member-role">Synthesis & Multimedia Production</div>
+          <p class="member-desc">Project presentation poster, video demonstration recording guide, future roadmap, and Media Gallery page.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="site-container">
+      <nav class="footer-nav" aria-label="Footer Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html">Install</a>
+        <a href="guide.html">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">Our Project</a>
+        <a href="faq.html">FAQ</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+
+      <div class="footer-row">
+        <div>
+          <strong style="color:#ffffff">Tomato Study</strong> — Course Project for Introduction to the Major and Soft Skills (2026–2027)
+        </div>
+        <div style="color:var(--text-muted)">
+          Page Lead: Member 4 (Quality Assurance & Project Analysis)
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

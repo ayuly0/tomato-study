@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomato Study — Installation & Setup | Windows, Linux & macOS</title>
+  <meta name="description" content="Production installation guide for Tomato Study: system requirements, automated setup scripts, updating, and troubleshooting common runtime issues.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="site-container header-row">
+      <a href="index.html" class="brand-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28" style="width:28px;height:28px;flex-shrink:0" aria-hidden="true">
+          <defs>
+            <radialGradient id="headerTomatoGrad" cx="38%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#ff6b6b"/>
+              <stop offset="50%" stop-color="#e03131"/>
+                <stop offset="100%" stop-color="#991414"/>
+            </radialGradient>
+          </defs>
+          <path d="M50,92 C22,92 10,74 10,54 C10,36 24,28 38,28 C44,28 48,31 50,33 C52,31 56,28 62,28 C76,28 90,36 90,54 C90,74 78,92 50,92 Z" fill="url(#headerTomatoGrad)"/>
+          <ellipse cx="34" cy="42" rx="14" ry="7" transform="rotate(-25 34 42)" fill="#ffffff" opacity="0.35"/>
+          <path d="M49,30 C49,18 45,10 52,7 C53,7 54,12 52,28 Z" fill="#2f9e44"/>
+          <circle cx="50" cy="30" r="3.5" fill="#237032"/>
+        </svg>
+        <span>Tomato Study</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html" class="active">Install</a>
+        <a href="guide.html">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">Our Project</a>
+        <a href="faq.html">FAQ</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+
+      <div>
+        <a href="https://github.com/ayuly/tomato-study" target="_blank" rel="noopener noreferrer" class="btn-github">
+          <svg width="16" height="16" style="width:16px;height:16px;flex-shrink:0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <section class="section" style="padding-bottom:2.5rem">
+    <div class="site-container">
+      <div style="max-width:44rem">
+        <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem">Production Setup</div>
+        <h1 class="section-title" style="font-size:2.5rem">Installation & Setup Guide</h1>
+        <p class="section-desc">
+          Automated one-click installers configure Python virtual environments, pull Qt dependencies, and pin desktop shortcuts automatically.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- System Requirements Section -->
+  <section class="section" style="padding-top:0">
+    <div class="site-container">
+      <div style="margin-bottom:2rem">
+        <h2 class="section-title" style="font-size:1.5rem">System Requirements</h2>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="table-shortcuts">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Minimum Requirement</th>
+              <th>Recommended</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;color:#ffffff">Operating System</td>
+              <td style="color:var(--text-secondary)">Windows 10, Ubuntu 22.04+, macOS 12+</td>
+              <td style="color:var(--text-secondary)">Windows 11 (64-bit), Arch / Ubuntu 24.04</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;color:#ffffff">Python Runtime</td>
+              <td style="color:var(--text-secondary)">Python 3.10</td>
+              <td style="color:var(--text-secondary)">Python 3.11 or 3.12 (via Astral uv)</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;color:#ffffff">Graphics Hardware</td>
+              <td style="color:var(--text-secondary)">OpenGL 2.1 / DirectX 11 via Qt RHI</td>
+              <td style="color:var(--text-secondary)">Dedicated GPU or Intel Iris / AMD Radeon</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;color:#ffffff">Disk Space</td>
+              <td style="color:var(--text-secondary)">~180 MB (including virtual environment)</td>
+              <td style="color:var(--text-secondary)">250 MB</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Installation Tabs -->
+  <section class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">Platform Installers</h2>
+        <p class="section-desc">Choose your platform for automated one-click setup.</p>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="tab-nav">
+          <button type="button" class="tab-btn active" data-target="tab-linux">Linux & macOS</button>
+          <button type="button" class="tab-btn" data-target="tab-windows">Windows (bat & ps1)</button>
+          <button type="button" class="tab-btn" data-target="tab-uv">Astral uv (Fastest)</button>
+          <button type="button" class="tab-btn" data-target="tab-manual">Manual Pip / Venv</button>
+        </div>
+
+        <div>
+          <!-- Linux & macOS -->
+          <div id="tab-linux" class="tab-content active">
+            <h3 style="font-size:0.9375rem;font-weight:600;color:#ffffff;margin-bottom:0.5rem">Automated Shell Setup</h3>
+            <p style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:1rem">
+              Checks for Python 3.10+, installs Astral uv if needed, builds a dedicated virtual environment, pre-compiles shaders, and registers a standard freedesktop `.desktop` launcher in `~/.local/share/applications/`.
+            </p>
+            <div class="code-box">
+              <code>git clone https://github.com/ayuly/tomato-study.git &amp;&amp; cd tomato-study &amp;&amp; ./install.sh &amp;&amp; ./run.sh</code>
+              <button type="button" onclick="copySnippet(this)" class="btn-copy">Copy</button>
+            </div>
+          </div>
+
+          <!-- Windows -->
+          <div id="tab-windows" class="tab-content">
+            <h3 style="font-size:0.9375rem;font-weight:600;color:#ffffff;margin-bottom:0.5rem">Automated Windows Setup</h3>
+            <p style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:1rem">
+              Run inside PowerShell or CMD (or simply double-click `install.bat`). Handles execution policy bypass, prepares virtual environment, installs dependencies, and creates a desktop shortcut.
+            </p>
+            <div class="code-box">
+              <code>git clone https://github.com/ayuly/tomato-study.git ; cd tomato-study ; .\install.bat ; .\run.bat</code>
+              <button type="button" onclick="copySnippet(this)" class="btn-copy">Copy</button>
+            </div>
+          </div>
+
+          <!-- Astral uv -->
+          <div id="tab-uv" class="tab-content">
+            <h3 style="font-size:0.9375rem;font-weight:600;color:#ffffff;margin-bottom:0.5rem">One-Command Direct Execution with uv</h3>
+            <p style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:1rem">
+              If you have <a href="https://github.com/astral-sh/uv" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">Astral uv</a> installed on your system, you can run directly without manual virtual environment creation:
+            </p>
+            <div class="code-box">
+              <code>uv run python src/main.py</code>
+              <button type="button" onclick="copySnippet(this)" class="btn-copy">Copy</button>
+            </div>
+          </div>
+
+          <!-- Manual Pip -->
+          <div id="tab-manual" class="tab-content">
+            <h3 style="font-size:0.9375rem;font-weight:600;color:#ffffff;margin-bottom:0.5rem">Standard Python Venv</h3>
+            <p style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:1rem">
+              Standard Python packaging without automation scripts:
+            </p>
+            <div class="code-box">
+              <code>python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -e . &amp;&amp; python src/main.py</code>
+              <button type="button" onclick="copySnippet(this)" class="btn-copy">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Updating & Maintenance -->
+  <section class="section">
+    <div class="site-container">
+      <div style="max-width:44rem;margin-bottom:2rem">
+        <h2 class="section-title">Updating the Application</h2>
+        <p class="section-desc">Keep your installation up to date with upstream security and feature updates:</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="card-title">Pull Latest Changes</h3>
+          <p class="card-text">
+            Fetch the latest stable commits from main:
+          </p>
+          <div class="code-box" style="margin-top:0.75rem;font-size:0.75rem">
+            <code>git pull origin main</code>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Synchronize Dependencies</h3>
+          <p class="card-text">
+            Update lockfile packages using uv or pip:
+          </p>
+          <div class="code-box" style="margin-top:0.75rem;font-size:0.75rem">
+            <code>uv sync --all-groups</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Troubleshooting Guide -->
+  <section class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">Troubleshooting Common Issues</h2>
+        <p class="section-desc">Known solutions for system-specific runtime conditions.</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <details class="faq-item">
+          <summary class="faq-question">PermissionError when enabling Strict Focus</summary>
+          <div class="faq-answer">
+            Modifying the operating system <code>hosts</code> file requires elevated administrative rights. On Windows, right-click your terminal or launcher and select <strong>Run as Administrator</strong>. On Linux or macOS, run the launch script with appropriate file permissions or run under sudo. Tomato Study catches this safely and emits an in-app alert without crashing.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary class="faq-question">qsb shader compiler not found</summary>
+          <div class="faq-answer">
+            Tomato Study pre-compiles <code>shader.frag.qsb</code> and ships it inside the <code>ui/</code> folder. If you modify <code>shader.frag</code> and the <code>qsb</code> tool is not found, the app safely falls back to using the existing pre-compiled binary shader without interruption.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary class="faq-question">Lo-Fi study radio shows STREAM CONNECTION ERROR</summary>
+          <div class="faq-answer">
+            The study radio streams live from <code>https://audio.late.sh/stream</code>. If your internet connection drops or the upstream radio undergoes routine maintenance, the internal audio streamer will attempt automatic reconnection every 5 seconds. The rest of the timer and OpenGL shaders function completely offline.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary class="faq-question">Wayland fractional scaling / window positioning on Linux</summary>
+          <div class="faq-answer">
+            If your Linux compositor (e.g., GNOME on Wayland or Hyprland) has display scaling issues, you can enforce XWayland compatibility by starting with: <code>QT_QPA_PLATFORM=xcb ./run.sh</code>.
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="site-container">
+      <nav class="footer-nav" aria-label="Footer Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html">Install</a>
+        <a href="guide.html">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">Our Project</a>
+        <a href="faq.html">FAQ</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+
+      <div class="footer-row">
+        <div>
+          <strong style="color:#ffffff">Tomato Study</strong> — Course Project for Introduction to the Major and Soft Skills (2026–2027)
+        </div>
+        <div style="color:var(--text-muted)">
+          Page Lead: Member 3 (Implementation & Packaging Engineer)
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomato Study — Credits & Links | Open Source Acknowledgements</title>
+  <meta name="description" content="Open source credits, technology acknowledgements, documentation links, and trademark notices for the Tomato Study application.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="site-container header-row">
+      <a href="index.html" class="brand-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28" style="width:28px;height:28px;flex-shrink:0" aria-hidden="true">
+          <defs>
+            <radialGradient id="headerTomatoGrad" cx="38%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#ff6b6b"/>
+              <stop offset="50%" stop-color="#e03131"/>
+              <stop offset="100%" stop-color="#991414"/>
+            </radialGradient>
+          </defs>
+          <path d="M50,92 C22,92 10,74 10,54 C10,36 24,28 38,28 C44,28 48,31 50,33 C52,31 56,28 62,28 C76,28 90,36 90,54 C90,74 78,92 50,92 Z" fill="url(#headerTomatoGrad)"/>
+          <ellipse cx="34" cy="42" rx="14" ry="7" transform="rotate(-25 34 42)" fill="#ffffff" opacity="0.35"/>
+          <path d="M49,30 C49,18 45,10 52,7 C53,7 54,12 52,28 Z" fill="#2f9e44"/>
+          <circle cx="50" cy="30" r="3.5" fill="#237032"/>
+        </svg>
+        <span>Tomato Study</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html">Install</a>
+        <a href="guide.html">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">Our Project</a>
+        <a href="faq.html">FAQ</a>
+        <a href="credits.html" class="active">Credits</a>
+      </nav>
+
+      <div>
+        <a href="https://github.com/ayuly/tomato-study" target="_blank" rel="noopener noreferrer" class="btn-github">
+          <svg width="16" height="16" style="width:16px;height:16px;flex-shrink:0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Introduction -->
+  <section class="section" style="padding-bottom:2.5rem">
+    <div class="site-container">
+      <div style="max-width:44rem">
+        <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem">Acknowledgements & Legal</div>
+        <h1 class="section-title" style="font-size:2.5rem">Credits, Links & Legal Notices</h1>
+        <p class="section-desc">
+          Tomato Study stands on the shoulders of remarkable open-source projects, community audio streams, and scientific productivity research.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Open Source Acknowledgements Grid -->
+  <section class="section" style="padding-top:0">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">Open Source Technologies</h2>
+        <p class="section-desc">Core libraries and utilities that make Tomato Study possible.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3 class="card-title">PySide6 & Qt Quick</h3>
+          <p class="card-text">
+            Developed by The Qt Company. Official Python bindings for the Qt framework, providing our high-performance declarative QML rendering engine and hardware RHI OpenGL graphics.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Astral uv</h3>
+          <p class="card-text">
+            Developed by Astral Software. An extremely fast Python package and virtual environment resolver written in Rust, powering our deterministic dependency resolution.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">late.sh Study Radio</h3>
+          <p class="card-text">
+            Created and hosted by the late.sh community. A free, high-quality, uninterrupted lo-fi study music stream that powers the background audio in Tomato Study.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">pyca/cryptography</h3>
+          <p class="card-text">
+            Maintained by the Python Cryptographic Authority. Provides our robust, audited AES-256-GCM authenticated cipher and PBKDF2HMAC key derivation engine.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">QtAwesome & Font Awesome 6</h3>
+          <p class="card-text">
+            Maintained by Spyder IDE and Fonticons, Inc. Provides clean vector font icons rendered directly inside the Qt Quick scene graph without external image dependencies.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">pytest Test Framework</h3>
+          <p class="card-text">
+            The industry-standard Python testing framework, used to automate all 36 unit tests validating timer drift, state transitions, security blocks, and offscreen QML rendering.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Official Project Links -->
+  <section class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">Useful Project Links</h2>
+        <p class="section-desc">Upstream links, documentation, and repository resources.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="card-title">Source Code & Contribution</h3>
+          <ul style="list-style:none;font-size:0.875rem;line-height:2;margin-top:0.75rem">
+            <li>GitHub Repository: <a href="https://github.com/ayuly/tomato-study" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">github.com/ayuly/tomato-study</a></li>
+            <li>Issue Tracker: <a href="https://github.com/ayuly/tomato-study/issues" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">Bug reports & feature proposals</a></li>
+            <li>License: <a href="https://github.com/ayuly/tomato-study/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">MIT Permissive Open Source License</a></li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Upstream Ecosystem</h3>
+          <ul style="list-style:none;font-size:0.875rem;line-height:2;margin-top:0.75rem">
+            <li>Lo-Fi Audio Stream: <a href="https://late.sh" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">late.sh</a></li>
+            <li>Qt for Python Documentation: <a href="https://doc.qt.io/qtforpython-6/" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">doc.qt.io/qtforpython-6</a></li>
+            <li>Astral Packaging: <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">docs.astral.sh/uv</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trademark & Legal Notices -->
+  <section class="section">
+    <div class="site-container">
+      <div style="margin-bottom:2.5rem">
+        <h2 class="section-title">Trademark & Intellectual Property Notices</h2>
+        <p class="section-desc">Legal disclaimers regarding third-party names and registered trademarks.</p>
+      </div>
+
+      <div class="card" style="font-size:0.8125rem;color:var(--text-secondary);line-height:1.75">
+        <p style="margin-bottom:1rem">
+          <strong>Pomodoro Technique Disclaimer:</strong> "Pomodoro" and "The Pomodoro Technique" are registered trademarks of Francesco Cirillo. Tomato Study is an independent open-source educational software project and is neither affiliated with, associated with, authorized by, nor endorsed by Francesco Cirillo or the Cirillo Company.
+        </p>
+        <p style="margin-bottom:1rem">
+          <strong>Qt Disclaimer:</strong> "Qt" and "PySide6" are registered trademarks of The Qt Company Ltd. and its subsidiaries. Tomato Study is developed independently using the LGPL-licensed PySide6 bindings.
+        </p>
+        <p>
+          <strong>Platform Trademarks:</strong> Windows is a registered trademark of Microsoft Corporation. macOS is a registered trademark of Apple Inc. Linux is the registered trademark of Linus Torvalds. All other product and company names mentioned are trademarks or registered trademarks of their respective holders.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="site-container">
+      <nav class="footer-nav" aria-label="Footer Navigation">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="methods.html">Study Methods</a>
+        <a href="install.html">Install</a>
+        <a href="guide.html">User Guide</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">Our Project</a>
+        <a href="faq.html">FAQ</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+
+      <div class="footer-row">
+        <div>
+          <strong style="color:#ffffff">Tomato Study</strong> — Course Project for Introduction to the Major and Soft Skills (2026–2027)
+        </div>
+        <div style="color:var(--text-muted)">
+          Page Lead: Member 4 (Quality Assurance, Licensing & Legal Review)
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
