@@ -323,16 +323,19 @@ class TimerBackend(QObject):
     def _activate_strict_focus(self):
         if self._strict_focus_enabled and not self._strict_focus_active:
             success = self._hosts_blocker.block_domains(self._blocked_domains)
-            self._strict_focus_active = True
-            self.strictFocusActiveChanged.emit(True)
-            if not success:
-                self.securityAlert.emit("Strict Focus: Note - Admin/root privileges required for hosts blocking.")
+            if success:
+                self._strict_focus_active = True
+                self.strictFocusActiveChanged.emit(True)
+            else:
+                self.securityAlert.emit("Strict Focus: Could not update the hosts file; administrator privileges may be required.")
 
     def _deactivate_strict_focus(self):
         if self._strict_focus_active:
-            self._hosts_blocker.unblock_all()
+            success = self._hosts_blocker.unblock_all()
             self._strict_focus_active = False
             self.strictFocusActiveChanged.emit(False)
+            if not success:
+                self.securityAlert.emit("Strict Focus: Could not remove managed hosts entries; administrator privileges may be required.")
 
     def _trigger_privacy_lock(self):
         if self._privacy_lock_enabled:

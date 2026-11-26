@@ -29,85 +29,73 @@ class HostsBlocker:
         self.hosts_path = hosts_path
         
     def is_blocked(self) -> bool:
-        """Returns True if the Tomato Study block block is present in the hosts file."""
+        """Returns True only when a complete managed block exists."""
         if not os.path.exists(self.hosts_path):
             return False
         try:
             with open(self.hosts_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
-            return HOSTS_MARKER_START in content and HOSTS_MARKER_END in content
-        except Exception:
+            return re.search(
+                rf"{re.escape(HOSTS_MARKER_START)}.*?{re.escape(HOSTS_MARKER_END)}",
+                content,
+                re.DOTALL,
+            ) is not None
+        except (OSError, UnicodeError):
             return False
 
     def block_domains(self, domains: Optional[List[str]] = None) -> bool:
-        """Appends redirect entries to localhost for target domains inside hosts file."""
+        """Adds localhost redirects for target domains inside the hosts file."""
         if domains is None:
             domains = DEFAULT_BLOCKED_DOMAINS
-            
         if not os.path.exists(self.hosts_path):
             return False
-
         try:
-            with open(self.hosts_path, "r", encoding="utf-8", errors="ignore") as f:
-                content = f.read()
-
-            # Clean any existing Tomato Study block first
+            with open(self.hosts_path, "r", encoding="utf-8", errors="ignore") as hosts_file:
+                content = hosts_file.read()
             pattern = re.compile(
                 rf"{re.escape(HOSTS_MARKER_START)}.*?{re.escape(HOSTS_MARKER_END)}\n?",
-                re.DOTALL
+                re.DOTALL,
             )
             clean_content = pattern.sub("", content).rstrip() + "\n"
-
-            # Build new block
-            block_lines = [
-                HOSTS_MARKER_START,
-                "# Automated distraction blocker during active Pomodoro session"
-            ]
+            block_lines = [HOSTS_MARKER_START, "# Automated distraction blocker during active Pomodoro session"]
             for domain in domains:
-                clean_dom = domain.strip().lower()
-                if clean_dom:
-                    block_lines.append(f"127.0.0.1  {clean_dom}")
-                    block_lines.append(f"::1        {clean_dom}")
-            block_lines.append(HOSTS_MARKER_END)
-            block_lines.append("")
-
+                clean_domain = domain.strip().lower()
+                if clean_domain:
+                    block_lines.extend((f"127.0.0.1  {clean_domain}", f"::1        {clean_domain}"))
+            block_lines.extend((HOSTS_MARKER_END, ""))
             new_content = clean_content + "\n".join(block_lines)
-
-            # Atomic write
             temp_path = f"{self.hosts_path}.tomato.tmp"
-            with open(temp_path, "w", encoding="utf-8") as f:
-                f.write(new_content)
+            with open(temp_path, "w", encoding="utf-8") as temp_file:
+                temp_file.write(new_content)
+                temp_file.flush()
+                os.fsync(temp_file.fileno())
             shutil.move(temp_path, self.hosts_path)
-            return True
-        except (PermissionError, OSError) as e:
-            # Cannot modify hosts without administrative privileges
+            return self.is_blocked()
+        except (PermissionError, OSError):
             return False
 
     def unblock_all(self) -> bool:
         """Removes all Tomato Study blocks from the hosts file."""
         if not os.path.exists(self.hosts_path):
             return False
-
         try:
-            with open(self.hosts_path, "r", encoding="utf-8", errors="ignore") as f:
-                content = f.read()
-
-            if HOSTS_MARKER_START not in content:
-                return True
-
+            with open(self.hosts_path, "r", encoding="utf-8", errors="ignore") as hosts_file:
+                content = hosts_file.read()
             pattern = re.compile(
                 rf"\n?{re.escape(HOSTS_MARKER_START)}.*?{re.escape(HOSTS_MARKER_END)}\n?",
-                re.DOTALL
+                re.DOTALL,
             )
             new_content = pattern.sub("\n", content).rstrip() + "\n"
-
             temp_path = f"{self.hosts_path}.tomato.tmp"
-            with open(temp_path, "w", encoding="utf-8") as f:
-                f.write(new_content)
+            with open(temp_path, "w", encoding="utf-8") as temp_file:
+                temp_file.write(new_content)
+                temp_file.flush()
+                os.fsync(temp_file.fileno())
             shutil.move(temp_path, self.hosts_path)
-            return True
+            return not self.is_blocked()
         except (PermissionError, OSError):
             return False
+
 
 
 # ============================================================================

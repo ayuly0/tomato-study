@@ -139,6 +139,7 @@ def test_hosts_blocker_injection_and_unblock():
         domains = ["facebook.com", "tiktok.com"]
         success = blocker.block_domains(domains)
         assert success is True
+        assert blocker.block_domains(domains) is True
         assert blocker.is_blocked() is True
         
         with open(hosts_path, "r", encoding="utf-8") as f:
@@ -207,6 +208,13 @@ def test_timer_strict_focus_anti_exit_lock(q_app):
     assert backend.can_close() is True
     assert backend.canClose() is True
     
+    # A failed hosts-file write must not claim protection is active.
+    with patch.object(backend._hosts_blocker, "block_domains", return_value=False):
+        backend.start()
+        assert backend.isRunning is True
+        assert backend.strictFocusActive is False
+        backend.pause()
+
     # Start work session in strict focus
     with patch.object(backend._hosts_blocker, "block_domains", return_value=True) as mock_block:
         backend.start()
