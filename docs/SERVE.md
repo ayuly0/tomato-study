@@ -81,16 +81,18 @@ with socketserver.TCPServer(("", PORT), Handler) as httpd:
 
 ---
 
-## 5. Deploying to GitHub Pages
+## 5. Free, Shareable GitHub Pages Link
 
-The `docs/` folder is pre-configured for GitHub Pages:
+The `docs/` overview is deployed by [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) whenever changes are pushed to `main` (or manually through **Actions** > **Deploy static overview to GitHub Pages** > **Run workflow**).
 
-1. Navigate to your repository on GitHub.
-2. Go to **Settings** > **Pages**.
-3. Under **Build and deployment**:
-   - **Source:** `Deploy from a branch`
-   - **Branch:** `main` (or `master`)
-   - **Folder:** `/docs`
-4. Click **Save**.
-5. Your website will be live at:
-   `https://<your-username>.github.io/<repository-name>/`
+### One-time setup
+
+1. Push this repository to GitHub. For free public access, make the repository public (private-repository Pages availability depends on your GitHub plan).
+2. In the repository, open **Settings** > **Pages**.
+3. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+4. Open **Actions** and allow workflows if GitHub prompts you; run the deployment workflow or push a change to `main`.
+5. Wait for the workflow to finish successfully. The generated URL appears under **Settings** > **Pages** and in the workflow's `github-pages` environment. For this repository it is expected to be:
+   `https://ayuly0.github.io/tomato-study/`
+6. Share that URL; anyone can open it without installing the desktop app or signing in. It remains available while the repository and Pages deployment remain published.
+
+To preview locally before sharing, use the commands in **Quick Start** above.
